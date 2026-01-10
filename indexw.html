@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNO TREBOL | Control Avanzado</title>
+    <title>TECNO TREBOL | Control Seguro</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -25,6 +27,7 @@
 
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #1f2937; -webkit-tap-highlight-color: transparent; }
         
+        /* PANTALLA DE LOGIN */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: flex; justify-content: center;
@@ -35,74 +38,58 @@
             text-align: center; width: 90%; max-width: 350px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
-        .btn-lock {
-            background: var(--primary); color: white; border: none;
+        .btn-google {
+            background: white; color: #374151; border: 1px solid #e5e7eb;
             padding: 15px; border-radius: 12px; width: 100%;
             font-weight: 700; cursor: pointer; margin-top: 20px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s; font-size: 15px;
         }
 
-        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); }
+        /* HEADER */
+        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); position: relative; }
         .main-header h1 { font-size: 32px; font-weight: 800; margin: 0; }
-        
+        .btn-logout { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 600; }
+
         .content-wrapper { max-width: 1100px; margin: -40px auto 40px; padding: 0 15px; display: none; } 
         
         .glass-card { background: white; border-radius: 24px; padding: 25px; box-shadow: var(--card-shadow); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.3); }
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #111827; border-left: 5px solid var(--primary); padding-left: 15px; }
         
-        /* --- CORRECCIÓN DE INPUTS PARA MÓVIL --- */
+        /* CORRECCIÓN DE INPUTS (IGUALES EN CELULAR) */
         input { 
-            -webkit-appearance: none; /* Quita estilo nativo en iOS */
-            appearance: none;
-            padding: 0 14px; /* Cambiado para controlar altura con 'height' */
-            border-radius: 12px; 
-            border: 1px solid #e5e7eb; 
-            background: #f9fafb; 
-            font-size: 14px; 
-            font-family: 'Inter', sans-serif;
-            width: 100%; 
-            box-sizing: border-box; 
-            height: 50px; /* Altura fija idéntica para todos */
-            line-height: 50px;
-            display: block;
-            color: #1f2937;
+            -webkit-appearance: none; appearance: none;
+            padding: 0 14px; border-radius: 12px; border: 1px solid #e5e7eb; 
+            background: #f9fafb; font-size: 16px; font-family: 'Inter', sans-serif;
+            width: 100%; box-sizing: border-box; height: 50px; line-height: 50px;
+            display: block; color: #1f2937;
         }
-
-        /* Ajuste específico para el selector de fecha en móvil */
-        input[type="date"] {
-            position: relative;
-            text-align: left;
-        }
+        input[type="date"] { position: relative; }
 
         .input-group { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
         @media (min-width: 768px) { .input-group { grid-template-columns: 2fr 1fr; } }
         
+        /* TABLA Y FILAS */
         .table-area { overflow-x: auto; margin-top: 20px; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 700px; }
-        th { padding: 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; }
+        th { padding: 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
         td { background: #fff; padding: 0; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; }
         
-        /* Inputs dentro de la tabla no deben tener altura fija de 50px */
-        .cell-input { 
-            height: 40px; 
-            line-height: 40px;
-            background: transparent;
-            border: none;
-            padding: 0 10px;
-        }
+        .cell-input { height: 45px; line-height: 45px; background: transparent; border: none; padding: 0 10px; font-size: 14px; }
         
         .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        @media (min-width: 768px) { .btn-row { justify-content: flex-end; } }
-        
-        .btn { padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; }
-        .btn-save { background: var(--accent-green); color: white; }
+        .btn { padding: 14px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; }
+        .btn-save { background: var(--accent-green); color: white; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
         .btn-add { background: #e5e7eb; color: #374151; }
 
-        .search-panel { display: grid; grid-template-columns: 1fr; gap: 15px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; }
+        /* BÚSQUEDA Y TARJETAS */
+        .search-panel { display: grid; grid-template-columns: 1fr; gap: 15px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         @media (min-width: 768px) { .search-panel { grid-template-columns: 1fr 1fr; } }
 
         .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .card-item { background: white; border-radius: 20px; padding: 20px; border-left: 10px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .btn-mini { padding: 8px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 5px; display: inline-block; }
+        .card-item { background: white; border-radius: 20px; padding: 20px; border-left: 10px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.2s; }
+        .card-item:hover { transform: translateY(-3px); }
+        .btn-mini { padding: 8px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 8px; display: inline-block; }
         .btn-pdf { background: #f3e8ff; color: #7e22ce; }
         .btn-excel { background: #dcfce7; color: #16a34a; }
 
@@ -115,15 +102,18 @@
 
     <div id="loginOverlay">
         <div id="loginBox">
-            <i class="fas fa-user-shield" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+            <i class="fas fa-shield-halved" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
             <h2 style="margin: 0 0 10px 0;">Acceso Seguro</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Introduce el código de administrador para gestionar las órdenes.</p>
-            <input type="password" id="passCode" placeholder="Código de acceso..." style="text-align: center;">
-            <button class="btn-lock" onclick="validarAcceso()">Entrar al Panel</button>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Solo personal autorizado puede gestionar el inventario de <b>Tecno Trebol</b>.</p>
+            <button class="btn-google" onclick="loginConGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                Continuar con Google
+            </button>
         </div>
     </div>
 
     <header class="main-header">
+        <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
         <h1>TECNO TREBOL</h1>
         <p>Control de Inventario de Órdenes</p>
     </header>
@@ -132,7 +122,7 @@
         <div class="glass-card">
             <div class="section-title" id="formTitle">Nueva Lista</div>
             <div class="input-group">
-                <input type="text" id="nombreOrden" placeholder="Nombre de la lista (Proyecto o Proveedor)...">
+                <input type="text" id="nombreOrden" placeholder="Nombre (Proyecto o Proveedor)...">
                 <input type="date" id="inputFecha">
             </div>
             <div class="table-area">
@@ -157,9 +147,9 @@
             </div>
         </div>
 
-        <div class="section-title">Historial Reciente</div>
+        <div class="section-title">Historial de Órdenes</div>
         <div class="search-panel">
-            <input type="text" id="txtBuscar" placeholder=" Buscar...(Nombre de la lista)" oninput="filtrar()">
+            <input type="text" id="txtBuscar" placeholder="🔍 Buscar por nombre..." oninput="filtrar()">
             <input type="date" id="fecBuscar" oninput="filtrar()">
         </div>
         <div id="historialLista" class="history-grid"></div>
@@ -168,29 +158,50 @@
     <div id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><div id="modalContent"></div><br><button class="btn btn-add" onclick="cerrarModal()">Cerrar</button></div></div>
 
     <script>
-        function validarAcceso() {
-            const code = document.getElementById('passCode').value;
-            if(code === "2427") {
-                document.getElementById('loginOverlay').style.display = "none";
-                document.getElementById('mainContent').style.display = "block";
-                cargarDesdeFirebase();
-            } else {
-                alert("Código incorrecto.");
-            }
-        }
+        // 1. CONFIGURACIÓN DE SEGURIDAD (CORREOS PERMITIDOS)
+        const correosAutorizados = [
+            "tu-correo@gmail.com", // Pon tu correo aquí
+            "admin@tecnotrebol.com"
+        ];
 
+        // 2. CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
-            apiKey: "PEGA_AQUI_TU_API_KEY", 
+            apiKey: "TU_API_KEY_AQUI", 
             authDomain: "lista-de-proveedores-ff830.firebaseapp.com",
             projectId: "lista-de-proveedores-ff830",
             storageBucket: "lista-de-proveedores-ff830.appspot.com",
             messagingSenderId: "941421495950",
-            appId: "PEGA_AQUI_TU_APP_ID"
+            appId: "TU_APP_ID_AQUI"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
+        // 3. LÓGICA DE ACCESO
+        auth.onAuthStateChanged(user => {
+            if (user && correosAutorizados.includes(user.email.toLowerCase())) {
+                document.getElementById('loginOverlay').style.display = "none";
+                document.getElementById('mainContent').style.display = "block";
+                cargarDesdeFirebase();
+            } else {
+                if(user) {
+                    alert("Correo no autorizado.");
+                    auth.signOut();
+                }
+                document.getElementById('loginOverlay').style.display = "flex";
+                document.getElementById('mainContent').style.display = "none";
+            }
+        });
+
+        function loginConGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(e => alert("Error al conectar con Google"));
+        }
+
+        function cerrarSesion() { auth.signOut(); }
+
+        // 4. LÓGICA DE NEGOCIO
         let registros = [];
         let editandoId = null;
 
@@ -243,9 +254,16 @@
             let items = [];
             filas.forEach(f => {
                 const n = f.querySelector('.nombre').value;
-                if(n) items.push({ n, ma: f.querySelector('.marca').value, m: f.querySelector('.modelo').value, c: f.querySelector('.cant').value, p: f.querySelector('.prec').value, t: f.querySelector('.total').innerText });
+                if(n) items.push({ 
+                    n, 
+                    ma: f.querySelector('.marca').value, 
+                    m: f.querySelector('.modelo').value, 
+                    c: f.querySelector('.cant').value, 
+                    p: f.querySelector('.prec').value, 
+                    t: f.querySelector('.total').innerText 
+                });
             });
-            if(items.length === 0) return alert("Agrega artículos");
+            if(items.length === 0) return alert("Agrega al menos un artículo");
 
             const data = { nombreOrden, fecha, items, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
 
@@ -256,8 +274,8 @@
                     await db.collection("pedidos").add(data);
                 }
                 reiniciarTabla();
-                alert("Guardado correctamente");
-            } catch (error) { alert("Error al guardar"); }
+                alert("✓ Guardado correctamente");
+            } catch (error) { alert("Error al guardar en base de datos"); }
         }
 
         function filtrar() {
@@ -275,7 +293,7 @@
                     <span class="btn-mini" onclick="cargarEdicion('${reg.fireId}')">Editar</span>
                     <span class="btn-mini btn-pdf" onclick="exportarPDF('${reg.fireId}')">PDF</span>
                     <span class="btn-mini btn-excel" onclick="exportarExcel('${reg.fireId}')">Excel</span>
-                    <span class="btn-mini" style="color:red" onclick="borrarRegistro('${reg.fireId}')">Borrar</span>
+                    <span class="btn-mini" style="color:red" onclick="borrarRegistro('${reg.fireId}')">Eliminar</span>
                 </div>`;
                 lista.appendChild(card);
             });
@@ -285,50 +303,47 @@
             const reg = registros.find(r => r.fireId === id);
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            for(let j=0; j<40; j++){
-                let r = 107 + (j * 1.5); let g = 33 + (j * 1.3); let b = 168 + (j * 1.1);
-                doc.setFillColor(r, g, b); doc.rect(0, j, 210, 1, 'F');
-            }
-            doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("TECNO TREBOL", 15, 22);
-            doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text("LISTADO DE PEDIDO A PROVEEDOR ", 15, 30);
-            doc.setTextColor(60, 60, 60); doc.setFontSize(12); doc.text(`NOMBRE DEL PROVEEDOR O ORDEN:`, 15, 50);
-            doc.setFont("helvetica", "bold"); doc.text(`${reg.nombreOrden.toUpperCase()}`, 15, 57);
-            doc.setFont("helvetica", "normal"); doc.text(`FECHA:`, 140, 50); doc.text(`${reg.fecha}`, 140, 57);
+            
+            // Estética del PDF
+            doc.setFillColor(107, 33, 168);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22); doc.text("TECNO TREBOL", 15, 25);
+            
+            doc.setTextColor(60, 60, 60);
+            doc.setFontSize(10); doc.text(`Órden: ${reg.nombreOrden.toUpperCase()}`, 15, 50);
+            doc.text(`Fecha: ${reg.fecha}`, 140, 50);
 
-            let totalGeneral = 0;
+            let totalG = 0;
             const dataTable = reg.items.map(it => {
-                const valTotal = parseFloat(it.t.replace('$', '')) || 0;
-                totalGeneral += valTotal;
-                return [it.n, it.ma, it.m, it.c, `$${parseFloat(it.p).toFixed(2)}`, it.t];
+                totalG += parseFloat(it.t.replace('$', '')) || 0;
+                return [it.n, it.ma, it.m, it.c, `$${it.p}`, it.t];
             });
 
             doc.autoTable({
-                startY: 70,
-                head: [['ARTÍCULO', 'MARCA', 'MODELO', 'CANT', 'UNITARIO', 'SUBTOTAL']],
+                startY: 60,
+                head: [['Art.', 'Marca', 'Modelo', 'Cant.', 'Precio', 'Subtotal']],
                 body: dataTable,
-                theme: 'striped',
-                headStyles: { fillColor: [107, 33, 168], textColor: [255, 255, 255], fontSize: 10, halign: 'center' },
-                styles: { fontSize: 9, cellPadding: 4 },
-                columnStyles: { 5: { halign: 'right', fontStyle: 'bold' } },
-                foot: [[{content: 'TOTAL A PAGAR:', colSpan: 5, styles: {halign: 'right', fillColor: [107, 33, 168], textColor: [255, 255, 255], fontStyle: 'bold'}}, 
-                        {content: `$${totalGeneral.toFixed(2)}`, styles: {halign: 'right', fillColor: [107, 33, 168], textColor: [255, 255, 255], fontStyle: 'bold'}}]]
+                headStyles: { fillColor: [107, 33, 168] },
+                foot: [[{content: 'TOTAL:', colSpan: 5, styles: {halign: 'right'}}, `$${totalG.toFixed(2)}`]],
+                footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
             });
-            doc.save(`${reg.nombreOrden}-PEDIDO.pdf`);
+            doc.save(`${reg.nombreOrden}.pdf`);
         }
 
         function exportarExcel(id) {
             const reg = registros.find(r => r.fireId === id);
-            const ws = XLSX.utils.json_to_sheet(reg.items.map(it => ({ Art: it.n, Marca: it.ma, Modelo: it.m, Cant: it.c, Total: it.t })));
+            const ws = XLSX.utils.json_to_sheet(reg.items.map(it => ({ Artículo: it.n, Marca: it.ma, Cant: it.c, Total: it.t })));
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Lista");
+            XLSX.utils.book_append_sheet(wb, ws, "Inventario");
             XLSX.writeFile(wb, `${reg.nombreOrden}.xlsx`);
         }
 
         function verDetalle(id) {
             const reg = registros.find(r => r.fireId === id);
             document.getElementById('modalTitle').innerText = reg.nombreOrden;
-            let h = `<table style="width:100%; border-collapse:collapse"><thead><tr style="border-bottom:2px solid #eee"><th>Art.</th><th>Total</th></tr></thead><tbody>`;
-            reg.items.forEach(it => h += `<tr style="border-bottom:1px solid #eee"><td>${it.n}</td><td>${it.t}</td></tr>`);
+            let h = `<table style="width:100%; border-collapse:collapse"><thead><tr style="text-align:left; border-bottom:2px solid #eee"><th>Art.</th><th>Cant.</th><th>Total</th></tr></thead><tbody>`;
+            reg.items.forEach(it => h += `<tr style="border-bottom:1px solid #eee; height:35px"><td>${it.n}</td><td>${it.c}</td><td>${it.t}</td></tr>`);
             document.getElementById('modalContent').innerHTML = h + `</tbody></table>`;
             document.getElementById('modal').style.display = "flex";
         }
@@ -340,12 +355,12 @@
             document.getElementById('inputFecha').value = reg.fecha;
             document.getElementById('tablaCuerpo').innerHTML = "";
             reg.items.forEach(it => agregarFila(it));
-            document.getElementById('formTitle').innerText = "Editando Registro";
+            document.getElementById('formTitle').innerText = "Editando Orden";
             document.getElementById('btnCancel').style.display = "inline-block";
             window.scrollTo({top:0, behavior:'smooth'});
         }
 
-        async function borrarRegistro(id) { if(confirm("¿Eliminar lista?")) { await db.collection("pedidos").doc(id).delete(); } }
+        async function borrarRegistro(id) { if(confirm("¿Estás seguro de eliminar esta lista permanentemente?")) { await db.collection("pedidos").doc(id).delete(); } }
         function cerrarModal() { document.getElementById('modal').style.display = "none"; }
         function cancelarEdicion() { reiniciarTabla(); }
     </script>
