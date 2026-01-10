@@ -3,109 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNO TREBOL | Control Seguro</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <title>TECNO TREBOL | Panel</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root {
-            --grad-header: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%);
-            --primary: #6b21a8;
-            --accent-green: #22c55e;
-            --bg: #f3f4f6;
-            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
+        :root { --primary: #6b21a8; --bg: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #1f2937; }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #1f2937; -webkit-tap-highlight-color: transparent; }
-        
-        /* PANTALLA DE LOGIN */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
-            align-items: center; z-index: 5000; backdrop-filter: blur(10px);
+        /* Login Overlay */
+        #loginOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(10px); }
+        .login-box { background: white; padding: 40px 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .btn-google { 
+            background: white; color: #374151; border: 1px solid #d1d5db; padding: 16px; 
+            width: 100%; border-radius: 14px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 25px;
+            font-size: 15px; transition: 0.2s;
         }
-        #loginBox {
-            background: white; padding: 40px; border-radius: 30px;
-            text-align: center; width: 90%; max-width: 350px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        .btn-google {
-            background: white; color: #374151; border: 1px solid #e5e7eb;
-            padding: 15px; border-radius: 12px; width: 100%;
-            font-weight: 700; cursor: pointer; margin-top: 20px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.3s; font-size: 15px;
-        }
+        .btn-google:active { transform: scale(0.98); background: #f9fafb; }
 
-        /* HEADER */
-        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); position: relative; }
-        .main-header h1 { font-size: 32px; font-weight: 800; margin: 0; }
-        .btn-logout { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        /* Header Estilo iPhone */
+        .main-header { background: linear-gradient(135deg, #6b21a8, #a855f7); color: white; padding: 60px 20px 80px; text-align: center; border-radius: 0 0 40px 40px; position: relative; }
+        .btn-logout { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 600; }
 
-        .content-wrapper { max-width: 1100px; margin: -40px auto 40px; padding: 0 15px; display: none; } 
+        /* Formulario y Inputs */
+        .content { max-width: 600px; margin: -50px auto 40px; padding: 0 20px; display: none; }
+        .card { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
         
-        .glass-card { background: white; border-radius: 24px; padding: 25px; box-shadow: var(--card-shadow); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.3); }
-        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #111827; border-left: 5px solid var(--primary); padding-left: 15px; }
-        
-        /* CORRECCIÓN DE INPUTS (IGUALES EN CELULAR) */
         input { 
             -webkit-appearance: none; appearance: none;
-            padding: 0 14px; border-radius: 12px; border: 1px solid #e5e7eb; 
-            background: #f9fafb; font-size: 16px; font-family: 'Inter', sans-serif;
-            width: 100%; box-sizing: border-box; height: 50px; line-height: 50px;
-            display: block; color: #1f2937;
+            height: 55px; width: 100%; padding: 0 15px; border-radius: 14px;
+            border: 1px solid #e5e7eb; background: #f9fafb; font-size: 16px;
+            margin-bottom: 15px; box-sizing: border-box; color: #1f2937;
         }
-        input[type="date"] { position: relative; }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        .input-group { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
-        @media (min-width: 768px) { .input-group { grid-template-columns: 2fr 1fr; } }
-        
-        /* TABLA Y FILAS */
-        .table-area { overflow-x: auto; margin-top: 20px; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 700px; }
-        th { padding: 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
-        td { background: #fff; padding: 0; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; }
-        
-        .cell-input { height: 45px; line-height: 45px; background: transparent; border: none; padding: 0 10px; font-size: 14px; }
-        
-        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .btn { padding: 14px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; }
-        .btn-save { background: var(--accent-green); color: white; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
-        .btn-add { background: #e5e7eb; color: #374151; }
-
-        /* BÚSQUEDA Y TARJETAS */
-        .search-panel { display: grid; grid-template-columns: 1fr; gap: 15px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        @media (min-width: 768px) { .search-panel { grid-template-columns: 1fr 1fr; } }
-
-        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .card-item { background: white; border-radius: 20px; padding: 20px; border-left: 10px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.2s; }
-        .card-item:hover { transform: translateY(-3px); }
-        .btn-mini { padding: 8px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 8px; display: inline-block; }
-        .btn-pdf { background: #f3e8ff; color: #7e22ce; }
-        .btn-excel { background: #dcfce7; color: #16a34a; }
-
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:1000; }
-        .modal-box { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; }
-        .total-col { font-weight: 700; color: var(--primary); text-align: center; }
+        .btn-save { width: 100%; background: #22c55e; color: white; border: none; height: 55px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
-        <div id="loginBox">
-            <i class="fas fa-shield-halved" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
-            <h2 style="margin: 0 0 10px 0;">Acceso Seguro</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Solo personal autorizado puede gestionar el inventario de <b>Tecno Trebol</b>.</p>
-            <button class="btn-google" onclick="loginConGoogle()">
+        <div class="login-box">
+            <i class="fas fa-shield-check" style="font-size: 50px; color: var(--primary); margin-bottom: 15px;"></i>
+            <h2 style="margin:0">TECNO TREBOL</h2>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">Acceso exclusivo para personal autorizado.</p>
+            <button class="btn-google" onclick="login()">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
                 Continuar con Google
             </button>
@@ -113,257 +61,96 @@
     </div>
 
     <header class="main-header">
-        <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
-        <h1>TECNO TREBOL</h1>
-        <p>Control de Inventario de Órdenes</p>
+        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        <h1 style="margin:0; font-size: 28px; letter-spacing: -1px;">TECNO TREBOL</h1>
+        <p style="opacity: 0.9; font-size: 14px;">Control de Inventario</p>
     </header>
 
-    <div class="content-wrapper" id="mainContent">
-        <div class="glass-card">
-            <div class="section-title" id="formTitle">Nueva Lista</div>
-            <div class="input-group">
-                <input type="text" id="nombreOrden" placeholder="Nombre (Proyecto o Proveedor)...">
-                <input type="date" id="inputFecha">
-            </div>
-            <div class="table-area">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Artículo</th>
-                            <th>Marca</th>
-                            <th>Modelo</th>
-                            <th style="width: 80px;">Cant.</th>
-                            <th style="width: 120px;">Precio</th>
-                            <th style="text-align:center; width: 120px;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaCuerpo"></tbody>
-                </table>
-            </div>
-            <div class="btn-row">
-                <button class="btn btn-add" onclick="agregarFila()">+ Añadir Línea</button>
-                <button class="btn btn-save" onclick="guardarRegistro()">Guardar Todo</button>
-                <button id="btnCancel" class="btn btn-add" style="display:none" onclick="cancelarEdicion()">Cancelar</button>
-            </div>
+    <div class="content" id="mainApp">
+        <div class="card">
+            <h3 style="margin-top:0; font-size: 18px;">Nueva Lista</h3>
+            <input type="text" id="nombreLista" placeholder="Nombre (Proyecto o Proveedor)...">
+            <input type="date" id="fechaLista">
+            <button class="btn-save" onclick="guardar()">Guardar Cambios</button>
         </div>
-
-        <div class="section-title">Historial de Órdenes</div>
-        <div class="search-panel">
-            <input type="text" id="txtBuscar" placeholder="🔍 Buscar por nombre..." oninput="filtrar()">
-            <input type="date" id="fecBuscar" oninput="filtrar()">
-        </div>
-        <div id="historialLista" class="history-grid"></div>
+        <div id="historial" style="margin-top:25px;"></div>
     </div>
 
-    <div id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><div id="modalContent"></div><br><button class="btn btn-add" onclick="cerrarModal()">Cerrar</button></div></div>
-
     <script>
-        // 1. CONFIGURACIÓN DE SEGURIDAD (CORREOS PERMITIDOS)
-        const correosAutorizados = [
-            "tu-correo@gmail.com", // Pon tu correo aquí
-            "admin@tecnotrebol.com"
-        ];
+        // --- 1. CONFIGURACIÓN ---
+        const correosPermitidos = ["tu-correo@gmail.com"]; // ¡PON TU CORREO AQUÍ!
 
-        // 2. CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
-            apiKey: "TU_API_KEY_AQUI", 
+            apiKey: "TU_API_KEY",
             authDomain: "lista-de-proveedores-ff830.firebaseapp.com",
             projectId: "lista-de-proveedores-ff830",
             storageBucket: "lista-de-proveedores-ff830.appspot.com",
             messagingSenderId: "941421495950",
-            appId: "TU_APP_ID_AQUI"
+            appId: "TU_APP_ID"
         };
 
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
         const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // 3. LÓGICA DE ACCESO
+        // --- 2. LÓGICA DE ACCESO ---
         auth.onAuthStateChanged(user => {
-            if (user && correosAutorizados.includes(user.email.toLowerCase())) {
-                document.getElementById('loginOverlay').style.display = "none";
-                document.getElementById('mainContent').style.display = "block";
-                cargarDesdeFirebase();
-            } else {
-                if(user) {
-                    alert("Correo no autorizado.");
-                    auth.signOut();
-                }
-                document.getElementById('loginOverlay').style.display = "flex";
-                document.getElementById('mainContent').style.display = "none";
+            if (user && correosPermitidos.includes(user.email.toLowerCase())) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                cargarDatos();
+            } else if (user) {
+                alert("Acceso denegado: " + user.email);
+                auth.signOut();
             }
         });
 
-        function loginConGoogle() {
+        function login() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => alert("Error al conectar con Google"));
+            auth.signInWithRedirect(provider);
         }
 
-        function cerrarSesion() { auth.signOut(); }
+        auth.getRedirectResult().catch(err => {
+            if(err.code !== "auth/no-auth-event") alert("Error de Firebase: " + err.message);
+        });
 
-        // 4. LÓGICA DE NEGOCIO
-        let registros = [];
-        let editandoId = null;
+        function logout() { auth.signOut().then(() => location.reload()); }
 
-        window.onload = () => {
-            document.getElementById('inputFecha').value = new Date().toISOString().split('T')[0];
-            reiniciarTabla();
-        };
-
-        function reiniciarTabla() {
-            document.getElementById('tablaCuerpo').innerHTML = "";
-            document.getElementById('nombreOrden').value = "";
-            document.getElementById('formTitle').innerText = "Nueva Lista";
-            document.getElementById('btnCancel').style.display = "none";
-            for(let i=0; i<3; i++) agregarFila();
-            editandoId = null;
+        // --- 3. FUNCIONES DE DATOS ---
+        async function guardar() {
+            const n = document.getElementById('nombreLista').value;
+            const f = document.getElementById('fechaLista').value;
+            if(!n) return alert("Por favor escribe un nombre");
+            
+            try {
+                await db.collection("pedidos").add({
+                    nombre: n,
+                    fecha: f,
+                    creado: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('nombreLista').value = "";
+                alert("¡Guardado con éxito!");
+            } catch(e) { alert("Error al guardar"); }
         }
 
-        function agregarFila(d = {}) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" class="nombre cell-input" placeholder="Art..." value="${d.n || ''}"></td>
-                <td><input type="text" class="marca cell-input" placeholder="Marca..." value="${d.ma || ''}"></td>
-                <td><input type="text" class="modelo cell-input" placeholder="Modelo..." value="${d.m || ''}"></td>
-                <td><input type="number" class="cant cell-input" oninput="recalc(this)" value="${d.c || ''}"></td>
-                <td><input type="number" class="prec cell-input" oninput="recalc(this)" value="${d.p || ''}"></td>
-                <td class="total-col total">${d.t || '$0.00'}</td>
-            `;
-            document.getElementById('tablaCuerpo').appendChild(tr);
-        }
-
-        function recalc(el) {
-            const f = el.closest('tr');
-            const c = parseFloat(f.querySelector('.cant').value) || 0;
-            const p = parseFloat(f.querySelector('.prec').value) || 0;
-            f.querySelector('.total').innerText = '$' + (c * p).toFixed(2);
-        }
-
-        function cargarDesdeFirebase() {
-            db.collection("pedidos").orderBy("creadoEn", "desc").onSnapshot((snapshot) => {
-                registros = [];
-                snapshot.forEach((doc) => { registros.push({ ...doc.data(), fireId: doc.id }); });
-                filtrar();
-            });
-        }
-
-        async function guardarRegistro() {
-            const nombreOrden = document.getElementById('nombreOrden').value.trim() || "SIN NOMBRE";
-            const fecha = document.getElementById('inputFecha').value;
-            const filas = document.querySelectorAll('#tablaCuerpo tr');
-            let items = [];
-            filas.forEach(f => {
-                const n = f.querySelector('.nombre').value;
-                if(n) items.push({ 
-                    n, 
-                    ma: f.querySelector('.marca').value, 
-                    m: f.querySelector('.modelo').value, 
-                    c: f.querySelector('.cant').value, 
-                    p: f.querySelector('.prec').value, 
-                    t: f.querySelector('.total').innerText 
+        function cargarDatos() {
+            db.collection("pedidos").orderBy("creado", "desc").onSnapshot(snap => {
+                const h = document.getElementById('historial');
+                h.innerHTML = "";
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    h.innerHTML += `
+                        <div style="background:white; padding:20px; border-radius:20px; margin-bottom:12px; border-left:6px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <div style="font-weight:700; font-size:16px;">${data.nombre}</div>
+                            <div style="color:#6b7280; font-size:13px; margin-top:4px;">📅 ${data.fecha || 'Sin fecha'}</div>
+                        </div>`;
                 });
             });
-            if(items.length === 0) return alert("Agrega al menos un artículo");
-
-            const data = { nombreOrden, fecha, items, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
-
-            try {
-                if(editandoId) {
-                    await db.collection("pedidos").doc(editandoId).update(data);
-                } else {
-                    await db.collection("pedidos").add(data);
-                }
-                reiniciarTabla();
-                alert("✓ Guardado correctamente");
-            } catch (error) { alert("Error al guardar en base de datos"); }
         }
 
-        function filtrar() {
-            const nom = document.getElementById('txtBuscar').value.toLowerCase();
-            const fec = document.getElementById('fecBuscar').value;
-            const filtrados = registros.filter(r => (r.nombreOrden.toLowerCase().includes(nom)) && (fec === "" || r.fecha === fec));
-            const lista = document.getElementById('historialLista');
-            lista.innerHTML = "";
-            filtrados.forEach(reg => {
-                const card = document.createElement('div');
-                card.className = "card-item";
-                card.innerHTML = `<h3>${reg.nombreOrden}</h3><p>📅 ${reg.fecha}</p>
-                <div class="card-btns">
-                    <span class="btn-mini" onclick="verDetalle('${reg.fireId}')">Ver</span>
-                    <span class="btn-mini" onclick="cargarEdicion('${reg.fireId}')">Editar</span>
-                    <span class="btn-mini btn-pdf" onclick="exportarPDF('${reg.fireId}')">PDF</span>
-                    <span class="btn-mini btn-excel" onclick="exportarExcel('${reg.fireId}')">Excel</span>
-                    <span class="btn-mini" style="color:red" onclick="borrarRegistro('${reg.fireId}')">Eliminar</span>
-                </div>`;
-                lista.appendChild(card);
-            });
-        }
-
-        function exportarPDF(id) {
-            const reg = registros.find(r => r.fireId === id);
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Estética del PDF
-            doc.setFillColor(107, 33, 168);
-            doc.rect(0, 0, 210, 40, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22); doc.text("TECNO TREBOL", 15, 25);
-            
-            doc.setTextColor(60, 60, 60);
-            doc.setFontSize(10); doc.text(`Órden: ${reg.nombreOrden.toUpperCase()}`, 15, 50);
-            doc.text(`Fecha: ${reg.fecha}`, 140, 50);
-
-            let totalG = 0;
-            const dataTable = reg.items.map(it => {
-                totalG += parseFloat(it.t.replace('$', '')) || 0;
-                return [it.n, it.ma, it.m, it.c, `$${it.p}`, it.t];
-            });
-
-            doc.autoTable({
-                startY: 60,
-                head: [['Art.', 'Marca', 'Modelo', 'Cant.', 'Precio', 'Subtotal']],
-                body: dataTable,
-                headStyles: { fillColor: [107, 33, 168] },
-                foot: [[{content: 'TOTAL:', colSpan: 5, styles: {halign: 'right'}}, `$${totalG.toFixed(2)}`]],
-                footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
-            });
-            doc.save(`${reg.nombreOrden}.pdf`);
-        }
-
-        function exportarExcel(id) {
-            const reg = registros.find(r => r.fireId === id);
-            const ws = XLSX.utils.json_to_sheet(reg.items.map(it => ({ Artículo: it.n, Marca: it.ma, Cant: it.c, Total: it.t })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Inventario");
-            XLSX.writeFile(wb, `${reg.nombreOrden}.xlsx`);
-        }
-
-        function verDetalle(id) {
-            const reg = registros.find(r => r.fireId === id);
-            document.getElementById('modalTitle').innerText = reg.nombreOrden;
-            let h = `<table style="width:100%; border-collapse:collapse"><thead><tr style="text-align:left; border-bottom:2px solid #eee"><th>Art.</th><th>Cant.</th><th>Total</th></tr></thead><tbody>`;
-            reg.items.forEach(it => h += `<tr style="border-bottom:1px solid #eee; height:35px"><td>${it.n}</td><td>${it.c}</td><td>${it.t}</td></tr>`);
-            document.getElementById('modalContent').innerHTML = h + `</tbody></table>`;
-            document.getElementById('modal').style.display = "flex";
-        }
-
-        function cargarEdicion(id) {
-            const reg = registros.find(r => r.fireId === id);
-            editandoId = id;
-            document.getElementById('nombreOrden').value = reg.nombreOrden;
-            document.getElementById('inputFecha').value = reg.fecha;
-            document.getElementById('tablaCuerpo').innerHTML = "";
-            reg.items.forEach(it => agregarFila(it));
-            document.getElementById('formTitle').innerText = "Editando Orden";
-            document.getElementById('btnCancel').style.display = "inline-block";
-            window.scrollTo({top:0, behavior:'smooth'});
-        }
-
-        async function borrarRegistro(id) { if(confirm("¿Estás seguro de eliminar esta lista permanentemente?")) { await db.collection("pedidos").doc(id).delete(); } }
-        function cerrarModal() { document.getElementById('modal').style.display = "none"; }
-        function cancelarEdicion() { reiniciarTabla(); }
+        window.onload = () => {
+            document.getElementById('fechaLista').value = new Date().toISOString().split('T')[0];
+        };
     </script>
 </body>
 </html>
-
