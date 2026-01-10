@@ -8,11 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root {
@@ -23,88 +23,68 @@
             --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #1f2937; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #1f2937; }
+        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); margin-bottom: -40px; }
+        .main-header h1 { font-size: 36px; font-weight: 800; margin: 0; letter-spacing: 1px; }
+        .main-header p { opacity: 0.8; font-size: 14px; margin-top: 10px; }
         
-        /* ESTILOS DEL BLOQUEO */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
-            align-items: center; z-index: 5000; backdrop-filter: blur(10px);
-        }
-        #loginBox {
-            background: white; padding: 40px; border-radius: 30px;
-            text-align: center; width: 90%; max-width: 350px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        .btn-lock {
-            background: var(--primary); color: white; border: none;
-            padding: 15px; border-radius: 12px; width: 100%;
-            font-weight: 700; cursor: pointer; margin-top: 20px;
-        }
-
-        /* DISEÑO WEB RESPONSIVO */
-        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); }
-        .main-header h1 { font-size: 32px; font-weight: 800; margin: 0; }
-        
-        .content-wrapper { max-width: 1100px; margin: -40px auto 40px; padding: 0 15px; display: none; } 
+        /* Ajuste de márgenes para que no se pegue a los bordes del celular */
+        .content-wrapper { max-width: 1100px; margin: 0 auto; padding: 15px; }
         
         .glass-card { background: white; border-radius: 24px; padding: 25px; box-shadow: var(--card-shadow); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.3); }
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #111827; border-left: 5px solid var(--primary); padding-left: 15px; }
         
-        /* Adaptabilidad de inputs */
-        .input-group { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
-        @media (min-width: 768px) { .input-group { grid-template-columns: 2fr 1fr; } }
-        
+        /* Ajuste de inputs: pasan de 2 columnas a 1 en móviles automáticamente */
+        .input-group { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 25px; }
+        @media (max-width: 768px) { 
+            .input-group { grid-template-columns: 1fr; } 
+            .search-panel { grid-template-columns: 1fr !important; gap: 10px !important; } 
+        }
+
         input { padding: 14px; border-radius: 12px; border: 1px solid #e5e7eb; background: #f9fafb; font-size: 14px; width: 100%; box-sizing: border-box; }
         
-        /* Tabla con scroll en móviles */
-        .table-area { overflow-x: auto; margin-top: 20px; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 700px; }
+        /* CORRECCIÓN DE LA TABLA: Ahora es deslizable y no se corta */
+        .table-area { 
+            overflow-x: auto; 
+            margin-top: 20px; 
+            -webkit-overflow-scrolling: touch; /* Suavidad en iPhone */
+        }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 700px; } /* Mantiene el ancho mínimo para legibilidad */
+        
         th { padding: 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; }
         td { background: #fff; padding: 0; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; }
         .cell-input { width: 100%; padding: 12px; border: none; background: transparent; font-size: 14px; box-sizing: border-box; }
         
-        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        @media (min-width: 768px) { .btn-row { justify-content: flex-end; } }
-        
-        .btn { padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; }
+        /* Botones adaptables */
+        .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+        .btn { padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; flex-grow: 1; text-align: center; }
+        @media (min-width: 768px) { .btn { flex-grow: 0; } }
+
         .btn-save { background: var(--accent-green); color: white; }
         .btn-add { background: #e5e7eb; color: #374151; }
-
-        /* Panel de búsqueda responsivo */
-        .search-panel { display: grid; grid-template-columns: 1fr; gap: 15px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; }
-        @media (min-width: 768px) { .search-panel { grid-template-columns: 1fr 1fr; } }
-
-        /* Cuadrícula de Historial */
-        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
+        .search-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; box-shadow: var(--card-shadow); }
+        
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
         .card-item { background: white; border-radius: 20px; padding: 20px; border-left: 10px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .btn-mini { padding: 8px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 5px; display: inline-block; }
+        
+        .btn-mini { padding: 8px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 5px; display: inline-block;}
         .btn-pdf { background: #f3e8ff; color: #7e22ce; }
         .btn-excel { background: #dcfce7; color: #16a34a; }
-
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:1000; }
-        .modal-box { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; }
+        
+        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:1000; padding: 10px; }
+        .modal-box { background: white; padding: 25px; border-radius: 30px; width: 100%; max-width: 800px; max-height: 85vh; overflow-y: auto; }
         .total-col { font-weight: 700; color: var(--primary); text-align: center; }
     </style>
 </head>
 <body>
-
-    <div id="loginOverlay">
-        <div id="loginBox">
-            <i class="fas fa-user-shield" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
-            <h2 style="margin: 0 0 10px 0;">Acceso Seguro</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Introduce el código de administrador para gestionar las órdenes.</p>
-            <input type="password" id="passCode" placeholder="Código de acceso..." style="text-align: center;">
-            <button class="btn-lock" onclick="validarAcceso()">Entrar al Panel</button>
-        </div>
-    </div>
 
     <header class="main-header">
         <h1>TECNO TREBOL</h1>
         <p>Control de Inventario de Órdenes</p>
     </header>
 
-    <div class="content-wrapper" id="mainContent">
+    <div class="content-wrapper">
         <div class="glass-card">
             <div class="section-title" id="formTitle">Nueva Lista</div>
             <div class="input-group">
@@ -135,26 +115,16 @@
 
         <div class="section-title">Historial Reciente</div>
         <div class="search-panel">
-            <input type="text" id="txtBuscar" placeholder=" Buscar...(Nombre de la lista)" oninput="filtrar()">
+            <input type="text" id="txtBuscar" placeholder=" Buscar...(Nombre de la lista) " oninput="filtrar()">
             <input type="date" id="fecBuscar" oninput="filtrar()">
         </div>
         <div id="historialLista" class="history-grid"></div>
     </div>
 
-    <div id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><div id="modalContent"></div><br><button class="btn btn-add" onclick="cerrarModal()">Cerrar</button></div></div>
+    <div id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><div id="modalContent"></div><br><button class="btn btn-add" style="width:100%" onclick="cerrarModal()">Cerrar</button></div></div>
 
     <script>
-        function validarAcceso() {
-            const code = document.getElementById('passCode').value;
-            if(code === "2427") {
-                document.getElementById('loginOverlay').style.display = "none";
-                document.getElementById('mainContent').style.display = "block";
-                cargarDesdeFirebase();
-            } else {
-                alert("Código incorrecto.");
-            }
-        }
-
+        // CONFIGURACIÓN DE FIREBASE (Datos originales de indexw.html)
         const firebaseConfig = {
             apiKey: "PEGA_AQUI_TU_API_KEY", 
             authDomain: "lista-de-proveedores-ff830.firebaseapp.com",
@@ -173,7 +143,18 @@
         window.onload = () => {
             document.getElementById('inputFecha').value = new Date().toISOString().split('T')[0];
             reiniciarTabla();
+            cargarDesdeFirebase();
         };
+
+        function cargarDesdeFirebase() {
+            db.collection("pedidos").orderBy("creadoEn", "desc").onSnapshot((snapshot) => {
+                registros = [];
+                snapshot.forEach((doc) => {
+                    registros.push({ ...doc.data(), fireId: doc.id });
+                });
+                filtrar();
+            });
+        }
 
         function reiniciarTabla() {
             document.getElementById('tablaCuerpo').innerHTML = "";
@@ -204,14 +185,6 @@
             f.querySelector('.total').innerText = '$' + (c * p).toFixed(2);
         }
 
-        function cargarDesdeFirebase() {
-            db.collection("pedidos").orderBy("creadoEn", "desc").onSnapshot((snapshot) => {
-                registros = [];
-                snapshot.forEach((doc) => { registros.push({ ...doc.data(), fireId: doc.id }); });
-                filtrar();
-            });
-        }
-
         async function guardarRegistro() {
             const nombreOrden = document.getElementById('nombreOrden').value.trim() || "SIN NOMBRE";
             const fecha = document.getElementById('inputFecha').value;
@@ -228,12 +201,15 @@
             try {
                 if(editandoId) {
                     await db.collection("pedidos").doc(editandoId).update(data);
+                    alert("Actualizado en la base de datos");
                 } else {
                     await db.collection("pedidos").add(data);
+                    alert("Guardado en la base de datos");
                 }
                 reiniciarTabla();
-                alert("Guardado correctamente");
-            } catch (error) { alert("Error al guardar"); }
+            } catch (error) {
+                alert("Error de conexión con la base de datos.");
+            }
         }
 
         function filtrar() {
@@ -257,7 +233,7 @@
             });
         }
 
-        /* --- CÓDIGO DE PDF ORIGINAL (SIN MODIFICACIONES) --- */
+        // --- CÓDIGO DE PDF Y EXCEL ORIGINAL (SIN CAMBIOS) ---
         function exportarPDF(id) {
             const reg = registros.find(r => r.fireId === id);
             const { jsPDF } = window.jspdf;
