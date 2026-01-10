@@ -3,56 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNO TREBOL | Panel</title>
+    <title>TECNO TREBOL | Inventario</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { --primary: #6b21a8; --bg: #f3f4f6; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #1f2937; }
-
-        /* Login Overlay */
-        #loginOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(10px); }
-        .login-box { background: white; padding: 40px 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .btn-google { 
-            background: white; color: #374151; border: 1px solid #d1d5db; padding: 16px; 
-            width: 100%; border-radius: 14px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 25px;
-            font-size: 15px; transition: 0.2s;
+        :root {
+            --primary: #6b21a8;
+            --grad: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%);
+            --bg: #f3f4f6;
         }
-        .btn-google:active { transform: scale(0.98); background: #f9fafb; }
 
-        /* Header Estilo iPhone */
-        .main-header { background: linear-gradient(135deg, #6b21a8, #a855f7); color: white; padding: 60px 20px 80px; text-align: center; border-radius: 0 0 40px 40px; position: relative; }
-        .btn-logout { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* Formulario y Inputs */
-        .content { max-width: 600px; margin: -50px auto 40px; padding: 0 20px; display: none; }
-        .card { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-        
-        input { 
+        /* --- Pantalla de Login --- */
+        #loginOverlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; backdrop-filter: blur(10px);
+        }
+
+        .login-box {
+            background: white; padding: 40px 30px;
+            border-radius: 30px; text-align: center;
+            width: 85%; max-width: 350px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .btn-google {
+            background: white; color: #374151; border: 1px solid #d1d5db;
+            padding: 16px; border-radius: 14px; width: 100%;
+            font-weight: 700; cursor: pointer; margin-top: 25px;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            font-size: 16px;
+        }
+
+        /* --- Header Estilo iPhone --- */
+        .main-header {
+            background: var(--grad);
+            color: white;
+            padding: 60px 20px 80px;
+            text-align: center;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            position: relative;
+        }
+
+        .btn-logout {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white; border: none; padding: 8px 15px;
+            border-radius: 10px; font-weight: 600; font-size: 12px;
+        }
+
+        /* --- Contenedor Principal --- */
+        .content {
+            max-width: 600px;
+            margin: -50px auto 40px;
+            padding: 0 20px;
+            display: none; /* Se activa al loguear */
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        input {
             -webkit-appearance: none; appearance: none;
-            height: 55px; width: 100%; padding: 0 15px; border-radius: 14px;
-            border: 1px solid #e5e7eb; background: #f9fafb; font-size: 16px;
-            margin-bottom: 15px; box-sizing: border-box; color: #1f2937;
+            height: 55px; width: 100%;
+            padding: 0 15px; border-radius: 15px;
+            border: 1px solid #e5e7eb; background: #f9fafb;
+            font-size: 16px; font-family: inherit;
+            box-sizing: border-box; margin-bottom: 15px;
         }
+
         input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        .btn-save { width: 100%; background: #22c55e; color: white; border: none; height: 55px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .btn-save {
+            width: 100%; background: #22c55e;
+            color: white; border: none; height: 55px;
+            border-radius: 15px; font-weight: 800;
+            font-size: 16px; cursor: pointer;
+        }
+
+        .history-item {
+            background: white; padding: 20px;
+            border-radius: 20px; margin-top: 15px;
+            border-left: 6px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center;
+        }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <i class="fas fa-shield-check" style="font-size: 50px; color: var(--primary); margin-bottom: 15px;"></i>
-            <h2 style="margin:0">TECNO TREBOL</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">Acceso exclusivo para personal autorizado.</p>
+            <i class="fas fa-shield-alt" style="font-size: 50px; color: var(--primary);"></i>
+            <h2 style="margin: 15px 0 5px;">Acceso Seguro</h2>
+            <p style="color: #6b7280; font-size: 14px;">Inicia sesión para gestionar Tecno Trebol.</p>
             <button class="btn-google" onclick="login()">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
                 Continuar con Google
@@ -61,93 +125,110 @@
     </div>
 
     <header class="main-header">
-        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
-        <h1 style="margin:0; font-size: 28px; letter-spacing: -1px;">TECNO TREBOL</h1>
-        <p style="opacity: 0.9; font-size: 14px;">Control de Inventario</p>
+        <button class="btn-logout" onclick="logout()">Salir</button>
+        <h1 style="margin:0; font-size: 32px; font-weight: 800;">TECNO TREBOL</h1>
+        <p style="opacity: 0.9; font-size: 14px; margin-top: 5px;">Control de Inventario de Órdenes</p>
     </header>
 
     <div class="content" id="mainApp">
         <div class="card">
-            <h3 style="margin-top:0; font-size: 18px;">Nueva Lista</h3>
-            <input type="text" id="nombreLista" placeholder="Nombre (Proyecto o Proveedor)...">
+            <h3 style="margin-top:0;"><i class="fas fa-plus-circle"></i> Nueva Lista</h3>
+            <input type="text" id="nombreLista" placeholder="Nombre de la lista (Proyecto)...">
             <input type="date" id="fechaLista">
-            <button class="btn-save" onclick="guardar()">Guardar Cambios</button>
+            <button class="btn-save" onclick="guardar()">Guardar Todo</button>
         </div>
-        <div id="historial" style="margin-top:25px;"></div>
+
+        <div style="margin-top: 30px;">
+            <h3 style="padding-left: 10px;">Historial Reciente</h3>
+            <div id="listaHistorial"></div>
+        </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN ---
-        const correosPermitidos = ["tu-correo@gmail.com"]; // ¡PON TU CORREO AQUÍ!
-
+        // --- CONFIGURACIÓN DE TU FIREBASE ---
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
+            apiKey: "AIzaSyDuJvzpUAc1oQoOVc8SQ4PErGTIGmiKWn8",
             authDomain: "lista-de-proveedores-ff830.firebaseapp.com",
             projectId: "lista-de-proveedores-ff830",
-            storageBucket: "lista-de-proveedores-ff830.appspot.com",
+            storageBucket: "lista-de-proveedores-ff830.firebasestorage.app",
             messagingSenderId: "941421495950",
-            appId: "TU_APP_ID"
+            appId: "1:941421495950:web:c0b6057de6d1d3e87aabdf"
         };
 
+        // Inicializar
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- 2. LÓGICA DE ACCESO ---
-        auth.onAuthStateChanged(user => {
-            if (user && correosPermitidos.includes(user.email.toLowerCase())) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                cargarDatos();
-            } else if (user) {
-                alert("Acceso denegado: " + user.email);
-                auth.signOut();
-            }
-        });
-
+        // --- GESTIÓN DE USUARIOS ---
         function login() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithRedirect(provider);
         }
 
-        auth.getRedirectResult().catch(err => {
-            if(err.code !== "auth/no-auth-event") alert("Error de Firebase: " + err.message);
+        function logout() {
+            auth.signOut().then(() => location.reload());
+        }
+
+        // Detectar si el usuario está logueado
+        auth.onAuthStateChanged(user => {
+            const correosPermitidos = ["trebolpagina@gmail.com"]; // Agrega aquí más correos si necesitas
+            
+            if (user && correosPermitidos.includes(user.email.toLowerCase())) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                cargarDatos();
+            } else if (user) {
+                alert("Acceso denegado para: " + user.email);
+                auth.signOut();
+            }
         });
 
-        function logout() { auth.signOut().then(() => location.reload()); }
+        // Capturar resultado del redireccionamiento
+        auth.getRedirectResult().catch(err => {
+            if(err.code !== "auth/no-auth-event") console.error("Error de Login:", err.message);
+        });
 
-        // --- 3. FUNCIONES DE DATOS ---
+        // --- FUNCIONES DE LA BASE DE DATOS ---
         async function guardar() {
-            const n = document.getElementById('nombreLista').value;
-            const f = document.getElementById('fechaLista').value;
-            if(!n) return alert("Por favor escribe un nombre");
-            
+            const nombre = document.getElementById('nombreLista').value;
+            const fecha = document.getElementById('fechaLista').value;
+
+            if(!nombre) return alert("Escribe un nombre para la lista");
+
             try {
                 await db.collection("pedidos").add({
-                    nombre: n,
-                    fecha: f,
+                    nombre: nombre,
+                    fecha: fecha,
                     creado: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 document.getElementById('nombreLista').value = "";
-                alert("¡Guardado con éxito!");
-            } catch(e) { alert("Error al guardar"); }
+                alert("¡Lista guardada!");
+            } catch (e) {
+                alert("Error al guardar: " + e.message);
+            }
         }
 
         function cargarDatos() {
             db.collection("pedidos").orderBy("creado", "desc").onSnapshot(snap => {
-                const h = document.getElementById('historial');
-                h.innerHTML = "";
+                const contenedor = document.getElementById('listaHistorial');
+                contenedor.innerHTML = "";
                 snap.forEach(doc => {
                     const data = doc.data();
-                    h.innerHTML += `
-                        <div style="background:white; padding:20px; border-radius:20px; margin-bottom:12px; border-left:6px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                            <div style="font-weight:700; font-size:16px;">${data.nombre}</div>
-                            <div style="color:#6b7280; font-size:13px; margin-top:4px;">📅 ${data.fecha || 'Sin fecha'}</div>
-                        </div>`;
+                    contenedor.innerHTML += `
+                        <div class="history-item">
+                            <div>
+                                <strong>${data.nombre}</strong><br>
+                                <small style="color:#6b7280">${data.fecha || 'Sin fecha'}</small>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color:#d1d5db"></i>
+                        </div>
+                    `;
                 });
             });
         }
 
+        // Poner fecha de hoy por defecto
         window.onload = () => {
             document.getElementById('fechaLista').value = new Date().toISOString().split('T')[0];
         };
