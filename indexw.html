@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECNO TREBOL | Control Avanzado</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --grad-header: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%);
+            --primary: #8b5cf6; /* Morado más claro (Violet 500) */
+            --primary-dark: #7c3aed;
+            --accent-green: #22c55e;
+            --bg: #f3f4f6;
+            --dark-bg: #2d2e32; /* Fondo oscuro de la imagen */
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #1f2937; }
+        
+        /* --- ESTILOS PANTALLA DE ACCESO --- */
+        #access-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--dark-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .access-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .lock-icon {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 20px;
+            fill: var(--primary); /* Aplicando el morado claro al icono */
+        }
+        .access-card h2 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: #111;
+        }
+        .access-card input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #f3f4f6;
+            background: #f9fafb;
+            font-size: 18px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .access-card input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .btn-entrar {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary); /* Aplicando el morado claro al botón */
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.2s;
+        }
+        .btn-entrar:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* --- ESTILOS DE LA APP (Se activan tras el login) --- */
+        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); margin-bottom: -40px; display: none; }
+        .content-wrapper { max-width: 1100px; margin: 0 auto; padding: 20px; display: none; }
+        /* ... (Resto de los estilos de tu aplicación original) ... */
+        .glass-card { background: white; border-radius: 24px; padding: 30px; box-shadow: var(--card-shadow); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.3); }
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #111827; border-left: 5px solid var(--primary); padding-left: 15px; }
+        .input-group { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 25px; }
+        input { padding: 14px; border-radius: 12px; border: 1px solid #e5e7eb; background: #f9fafb; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .table-area { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 800px; }
+        th { padding: 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; }
+        td { background: #fff; padding: 0; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; }
+        .cell-input { width: 100%; padding: 12px; border: none; background: transparent; font-size: 14px; box-sizing: border-box; }
+        .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn { padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; }
+        .btn-save { background: var(--accent-green); color: white; }
+        .btn-add { background: #e5e7eb; color: #374151; }
+        .search-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; }
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card-item { background: white; border-radius: 20px; padding: 20px; border-left: 10px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .btn-mini { padding: 6px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 5px; display: inline-block;}
+        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:1000; }
+        .modal-box { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; }
+        .total-col { font-weight: 700; color: var(--primary); text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="access-overlay">
+        <div class="access-card">
+            <svg class="lock-icon" viewBox="0 0 24 24">
+                <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z"/>
+            </svg>
+            <h2>Acceso Restringido</h2>
+            <input type="password" id="passInput" placeholder="Contraseña" onkeypress="if(event.key === 'Enter') verificar()">
+            <button class="btn-entrar" onclick="verificar()">Entrar</button>
+        </div>
+    </div>
+
+    <header class="main-header" id="appHeader">
+        <h1>TECNO TREBOL</h1>
+        <p>Control de Inventario de Órdenes</p>
+    </header>
+
+    <div class="content-wrapper" id="appContent">
+        <div class="glass-card">
+            <div class="section-title" id="formTitle">Nueva Lista</div>
+            <div class="input-group">
+                <input type="text" id="nombreOrden" placeholder="Nombre de la lista (Proyecto o Proveedor)...">
+                <input type="date" id="inputFecha">
+            </div>
+            <div class="table-area">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th style="width: 80px;">Cant.</th>
+                            <th style="width: 120px;">Precio</th>
+                            <th style="text-align:center; width: 120px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaCuerpo"></tbody>
+                </table>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-add" onclick="agregarFila()">+ Añadir Línea</button>
+                <button class="btn btn-save" onclick="guardarRegistro()">Guardar Todo</button>
+                <button id="btnCancel" class="btn btn-add" style="display:none" onclick="cancelarEdicion()">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="section-title">Historial Reciente</div>
+        <div class="search-panel">
+            <input type="text" id="txtBuscar" placeholder=" Buscar..." oninput="filtrar()">
+            <input type="date" id="fecBuscar" oninput="filtrar()">
+        </div>
+        <div id="historialLista" class="history-grid"></div>
+    </div>
+
+    <div id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><div id="modalContent"></div><br><button class="btn btn-add" onclick="cerrarModal()">Cerrar</button></div></div>
+
+    <script>
+        // CONFIGURACIÓN FIREBASE
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY", 
+            authDomain: "lista-de-proveedores-ff830.firebaseapp.com",
+            projectId: "lista-de-proveedores-ff830",
+            storageBucket: "lista-de-proveedores-ff830.appspot.com",
+            messagingSenderId: "941421495950",
+            appId: "TU_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let registros = [];
+        let editandoId = null;
+
+        // LÓGICA DE LOGIN
+        function verificar() {
+            const input = document.getElementById('passInput').value;
+            if(input === "2427") {
+                document.getElementById('access-overlay').style.display = 'none';
+                document.getElementById('appHeader').style.display = 'block';
+                document.getElementById('appContent').style.display = 'block';
+                
+                document.getElementById('inputFecha').value = new Date().toISOString().split('T')[0];
+                reiniciarTabla();
+                cargarDesdeFirebase();
+            } else {
+                alert("Contraseña incorrecta");
+            }
+        }
+
+        // ... (Resto de las funciones de Firebase y UI de tu archivo original) ...
+        function cargarDesdeFirebase() {
+            db.collection("pedidos").orderBy("creadoEn", "desc").onSnapshot((snapshot) => {
+                registros = [];
+                snapshot.forEach((doc) => { registros.push({ ...doc.data(), fireId: doc.id }); });
+                filtrar();
+            });
+        }
+
+        function reiniciarTabla() {
+            document.getElementById('tablaCuerpo').innerHTML = "";
+            document.getElementById('nombreOrden').value = "";
+            for(let i=0; i<3; i++) agregarFila();
+            editandoId = null;
+        }
+
+        function agregarFila(d = {}) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="nombre cell-input" placeholder="Art..." value="${d.n || ''}"></td>
+                <td><input type="text" class="marca cell-input" placeholder="Marca..." value="${d.ma || ''}"></td>
+                <td><input type="text" class="modelo cell-input" placeholder="Modelo..." value="${d.m || ''}"></td>
+                <td><input type="number" class="cant cell-input" oninput="recalc(this)" value="${d.c || ''}"></td>
+                <td><input type="number" class="prec cell-input" oninput="recalc(this)" value="${d.p || ''}"></td>
+                <td class="total-col total">${d.t || '$0.00'}</td>
+            `;
+            document.getElementById('tablaCuerpo').appendChild(tr);
+        }
+
+        function recalc(el) {
+            const f = el.closest('tr');
+            const c = parseFloat(f.querySelector('.cant').value) || 0;
+            const p = parseFloat(f.querySelector('.prec').value) || 0;
+            f.querySelector('.total').innerText = '$' + (c * p).toFixed(2);
+        }
+
+        function filtrar() {
+            const nom = document.getElementById('txtBuscar').value.toLowerCase();
+            const fec = document.getElementById('fecBuscar').value;
+            const filtrados = registros.filter(r => (r.nombreOrden.toLowerCase().includes(nom)) && (fec === "" || r.fecha === fec));
+            const lista = document.getElementById('historialLista');
+            lista.innerHTML = "";
+            filtrados.forEach(reg => {
+                const card = document.createElement('div');
+                card.className = "card-item";
+                card.innerHTML = `<h3>${reg.nombreOrden}</h3><p>📅 ${reg.fecha}</p>
+                <div class="card-btns">
+                    <span class="btn-mini" onclick="verDetalle('${reg.fireId}')">Ver</span>
+                    <span class="btn-mini" style="color:red" onclick="borrarRegistro('${reg.fireId}')">Borrar</span>
+                </div>`;
+                lista.appendChild(card);
+            });
+        }
+
+        function cerrarModal() { document.getElementById('modal').style.display = "none"; }
+    </script>
+</body>
+</html>
