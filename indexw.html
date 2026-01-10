@@ -3,185 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TECNO TREBOL | Inventario</title>
+    <title>TECNO TREBOL | Control Avanzado</title>
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { --primary: #6b21a8; --grad: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%); }
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; color: #1f2937; }
-        
-        /* Pantalla de Login */
-        #loginOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(10px); }
-        .login-box { background: white; padding: 40px 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; }
-        .btn-google { background: white; color: #374151; border: 1px solid #d1d5db; padding: 16px; border-radius: 14px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        :root {
+            --grad-header: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%);
+            --primary: #6b21a8;
+            --accent-green: #22c55e;
+            --bg: #f3f4f6;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
 
-        /* Header Estilo iPhone */
-        .main-header { background: var(--grad); color: white; padding: 60px 20px 80px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; position: relative; }
-        .btn-logout { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #1f2937; -webkit-tap-highlight-color: transparent; }
+        
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
+            align-items: center; z-index: 5000; backdrop-filter: blur(10px);
+        }
+        #loginBox {
+            background: white; padding: 40px; border-radius: 30px;
+            text-align: center; width: 90%; max-width: 350px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .btn-lock {
+            background: var(--primary); color: white; border: none;
+            padding: 15px; border-radius: 12px; width: 100%;
+            font-weight: 700; cursor: pointer; margin-top: 20px;
+        }
 
-        /* Contenido */
-        .content { max-width: 600px; margin: -50px auto 40px; padding: 0 20px; display: none; }
-        .card { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .main-header { background: var(--grad-header); color: white; padding: 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: var(--card-shadow); }
+        .main-header h1 { font-size: 32px; font-weight: 800; margin: 0; }
         
-        input { width: 100%; height: 50px; padding: 0 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #f9fafb; font-size: 16px; box-sizing: border-box; margin-bottom: 12px; }
+        .content-wrapper { max-width: 1100px; margin: -40px auto 40px; padding: 0 15px; display: none; } 
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .row-input { height: 40px; margin-bottom: 5px; font-size: 14px; }
+        .glass-card { background: white; border-radius: 24px; padding: 25px; box-shadow: var(--card-shadow); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.3); }
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #111827; border-left: 5px solid var(--primary); padding-left: 15px; }
         
-        .btn-add { background: #f3f4f6; color: #374151; border: none; padding: 12px; border-radius: 12px; font-weight: 600; width: 48%; }
-        .btn-save { background: #22c55e; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 800; width: 48%; }
-        .actions { display: flex; justify-content: space-between; margin-top: 20px; }
+        /* --- CORRECCIÓN DE INPUTS PARA MÓVIL --- */
+        input { 
+            -webkit-appearance: none; /* Quita estilo nativo en iOS */
+            appearance: none;
+            padding: 0 14px; /* Cambiado para controlar altura con 'height' */
+            border-radius: 12px; 
+            border: 1px solid #e5e7eb; 
+            background: #f9fafb; 
+            font-size: 14px; 
+            font-family: 'Inter', sans-serif;
+            width: 100%; 
+            box-sizing: border-box; 
+            height: 50px; /* Altura fija idéntica para todos */
+            line-height: 50px;
+            display: block;
+            color: #1f2937;
+        }
 
-        .history-item { background: white; padding: 18px; border-radius: 20px; margin-top: 12px; border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        /* Ajuste específico para el selector de fecha en móvil */
+        input[type="date"] {
+            position: relative;
+            text-align: left;
+        }
+
+        .input-group { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+        @media (min-width: 768px) { .input-group { grid-template-columns: 2fr 1fr; } }
+        
+        .table-area { overflow-x: auto; margin-top: 20px; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 700px; }
+        th { padding: 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase; }
+        td { background: #fff; padding: 0; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; }
+        
+        /* Inputs dentro de la tabla no deben tener altura fija de 50px */
+        .cell-input { 
+            height: 40px; 
+            line-height: 40px;
+            background: transparent;
+            border: none;
+            padding: 0 10px;
+        }
+        
+        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        @media (min-width: 768px) { .btn-row { justify-content: flex-end; } }
+        
+        .btn { padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; font-size: 14px; }
+        .btn-save { background: var(--accent-green); color: white; }
+        .btn-add { background: #e5e7eb; color: #374151; }
+
+        .search-panel { display: grid; grid-template-columns: 1fr; gap: 15px; background: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 30px; }
+        @media (min-width: 768px) { .search-panel { grid-template-columns: 1fr 1fr; } }
+
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card-item { background: white; border-radius: 20px; padding: 20px; border-left: 10px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .btn-mini { padding: 8px 12px; font-size: 11px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 4px; margin-top: 5px; display: inline-block; }
+        .btn-pdf { background: #f3e8ff; color: #7e22ce; }
+        .btn-excel { background: #dcfce7; color: #16a34a; }
+
+        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:1000; }
+        .modal-box { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; }
+        .total-col { font-weight: 700; color: var(--primary); text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
-        <div class="login-box">
-            <i class="fas fa-shield-alt" style="font-size: 50px; color: var(--primary);"></i>
-            <h2 style="margin: 15px 0 5px;">TECNO TREBOL</h2>
-            <p style="color: #6b7280; font-size: 14px;">Acceso exclusivo para personal autorizado.</p>
-            <button class="btn-google" onclick="login()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                Continuar con Google
-            </button>
+        <div id="loginBox">
+            <i class="fas fa-user-shield" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+            <h2 style="margin: 0 0 10px 0;">Acceso Seguro</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Introduce el código de administrador para gestionar las órdenes.</p>
+            <input type="password" id="passCode" placeholder="Código de acceso..." style="text-align: center;">
+            <button class="btn-lock" onclick="validarAcceso()">Entrar al Panel</button>
         </div>
     </div>
 
     <header class="main-header">
-        <button class="btn-logout" onclick="logout()">Salir</button>
-        <h1 style="margin:0; font-size: 28px; font-weight: 800;">TECNO TREBOL</h1>
+        <h1>TECNO TREBOL</h1>
+        <p>Control de Inventario de Órdenes</p>
     </header>
 
-    <div class="content" id="mainApp">
-        <div class="card">
-            <h3 style="margin-top:0;">Nueva Orden</h3>
-            <input type="text" id="nombreLista" placeholder="Nombre del Proyecto...">
-            <input type="date" id="fechaLista">
-
-            <table>
-                <thead>
-                    <tr style="font-size: 12px; color: #6b7280;">
-                        <th>Artículo</th>
-                        <th>Marca</th>
-                        <th>Cant</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaArticulos"></tbody>
-            </table>
-
-            <div class="actions">
-                <button class="btn-add" onclick="agregarFila()">+ Línea</button>
-                <button class="btn-save" onclick="guardarTodo()">Guardar</button>
+    <div class="content-wrapper" id="mainContent">
+        <div class="glass-card">
+            <div class="section-title" id="formTitle">Nueva Lista</div>
+            <div class="input-group">
+                <input type="text" id="nombreOrden" placeholder="Nombre de la lista (Proyecto o Proveedor)...">
+                <input type="date" id="inputFecha">
+            </div>
+            <div class="table-area">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th style="width: 80px;">Cant.</th>
+                            <th style="width: 120px;">Precio</th>
+                            <th style="text-align:center; width: 120px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaCuerpo"></tbody>
+                </table>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-add" onclick="agregarFila()">+ Añadir Línea</button>
+                <button class="btn btn-save" onclick="guardarRegistro()">Guardar Todo</button>
+                <button id="btnCancel" class="btn btn-add" style="display:none" onclick="cancelarEdicion()">Cancelar</button>
             </div>
         </div>
 
-        <div style="margin-top: 30px;">
-            <h3>Historial</h3>
-            <div id="listaHistorial"></div>
+        <div class="section-title">Historial Reciente</div>
+        <div class="search-panel">
+            <input type="text" id="txtBuscar" placeholder=" Buscar...(Nombre de la lista)" oninput="filtrar()">
+            <input type="date" id="fecBuscar" oninput="filtrar()">
         </div>
+        <div id="historialLista" class="history-grid"></div>
     </div>
 
+    <div id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><div id="modalContent"></div><br><button class="btn btn-add" onclick="cerrarModal()">Cerrar</button></div></div>
+
     <script>
-        // Credenciales extraídas de tus capturas
+        function validarAcceso() {
+            const code = document.getElementById('passCode').value;
+            if(code === "2427") {
+                document.getElementById('loginOverlay').style.display = "none";
+                document.getElementById('mainContent').style.display = "block";
+                cargarDesdeFirebase();
+            } else {
+                alert("Código incorrecto.");
+            }
+        }
+
         const firebaseConfig = {
-            apiKey: "AIzaSyDuJvzpUAc1oQoOVc8SQ4PErGTIGmiKWn8",
+            apiKey: "PEGA_AQUI_TU_API_KEY", 
             authDomain: "lista-de-proveedores-ff830.firebaseapp.com",
             projectId: "lista-de-proveedores-ff830",
-            storageBucket: "lista-de-proveedores-ff830.firebasestorage.app",
+            storageBucket: "lista-de-proveedores-ff830.appspot.com",
             messagingSenderId: "941421495950",
-            appId: "1:941421495950:web:c0b6057de6d1d3e87aabdf"
+            appId: "PEGA_AQUI_TU_APP_ID"
         };
 
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- SISTEMA DE LOGIN ---
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            // Redirección para evitar bloqueos en iPhone
-            auth.signInWithRedirect(provider);
-        }
-
-        function logout() { auth.signOut().then(() => location.reload()); }
-
-        // Detectar sesión al cargar
-        auth.getRedirectResult().catch(err => alert("Error: " + err.message));
-
-        auth.onAuthStateChanged(user => {
-            // Tu correo autorizado
-            const autorizado = "trebolpagina@gmail.com"; 
-            if (user && user.email.toLowerCase() === autorizado) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                cargarHistorial();
-            } else if (user) {
-                alert("Usuario no autorizado");
-                auth.signOut();
-            }
-        });
-
-        // --- FUNCIONES DE TABLA ---
-        function agregarFila() {
-            const tbody = document.getElementById('tablaArticulos');
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td><input type="text" class="row-input art" placeholder="Artículo"></td>
-                <td><input type="text" class="row-input mar" placeholder="Marca"></td>
-                <td><input type="number" class="row-input can" style="width:50px"></td>
-            `;
-            tbody.appendChild(fila);
-        }
-
-        async function guardarTodo() {
-            const nombre = document.getElementById('nombreLista').value;
-            const fecha = document.getElementById('fechaLista').value;
-            const filas = document.querySelectorAll('#tablaArticulos tr');
-            
-            if(!nombre) return alert("Escribe un nombre");
-
-            let items = [];
-            filas.forEach(f => {
-                const a = f.querySelector('.art').value;
-                if(a) items.push({ art: a, mar: f.querySelector('.mar').value, can: f.querySelector('.can').value });
-            });
-
-            try {
-                await db.collection("pedidos").add({
-                    nombre, fecha, items,
-                    creado: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert("¡Guardado!");
-                location.reload();
-            } catch (e) { alert("Error al guardar"); }
-        }
-
-        function cargarHistorial() {
-            db.collection("pedidos").orderBy("creado", "desc").limit(10).onSnapshot(snap => {
-                const h = document.getElementById('listaHistorial');
-                h.innerHTML = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    h.innerHTML += `<div class="history-item">
-                        <div><strong>${d.nombre}</strong><br><small>${d.fecha}</small></div>
-                        <i class="fas fa-check-circle" style="color:#22c55e"></i>
-                    </div>`;
-                });
-            });
-        }
+        let registros = [];
+        let editandoId = null;
 
         window.onload = () => {
-            document.getElementById('fechaLista').value = new Date().toISOString().split('T')[0];
-            for(let i=0; i<3; i++) agregarFila();
+            document.getElementById('inputFecha').value = new Date().toISOString().split('T')[0];
+            reiniciarTabla();
         };
+
+        function reiniciarTabla() {
+            document.getElementById('tablaCuerpo').innerHTML = "";
+            document.getElementById('nombreOrden').value = "";
+            document.getElementById('formTitle').innerText = "Nueva Lista";
+            document.getElementById('btnCancel').style.display = "none";
+            for(let i=0; i<3; i++) agregarFila();
+            editandoId = null;
+        }
+
+        function agregarFila(d = {}) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="nombre cell-input" placeholder="Art..." value="${d.n || ''}"></td>
+                <td><input type="text" class="marca cell-input" placeholder="Marca..." value="${d.ma || ''}"></td>
+                <td><input type="text" class="modelo cell-input" placeholder="Modelo..." value="${d.m || ''}"></td>
+                <td><input type="number" class="cant cell-input" oninput="recalc(this)" value="${d.c || ''}"></td>
+                <td><input type="number" class="prec cell-input" oninput="recalc(this)" value="${d.p || ''}"></td>
+                <td class="total-col total">${d.t || '$0.00'}</td>
+            `;
+            document.getElementById('tablaCuerpo').appendChild(tr);
+        }
+
+        function recalc(el) {
+            const f = el.closest('tr');
+            const c = parseFloat(f.querySelector('.cant').value) || 0;
+            const p = parseFloat(f.querySelector('.prec').value) || 0;
+            f.querySelector('.total').innerText = '$' + (c * p).toFixed(2);
+        }
+
+        function cargarDesdeFirebase() {
+            db.collection("pedidos").orderBy("creadoEn", "desc").onSnapshot((snapshot) => {
+                registros = [];
+                snapshot.forEach((doc) => { registros.push({ ...doc.data(), fireId: doc.id }); });
+                filtrar();
+            });
+        }
+
+        async function guardarRegistro() {
+            const nombreOrden = document.getElementById('nombreOrden').value.trim() || "SIN NOMBRE";
+            const fecha = document.getElementById('inputFecha').value;
+            const filas = document.querySelectorAll('#tablaCuerpo tr');
+            let items = [];
+            filas.forEach(f => {
+                const n = f.querySelector('.nombre').value;
+                if(n) items.push({ n, ma: f.querySelector('.marca').value, m: f.querySelector('.modelo').value, c: f.querySelector('.cant').value, p: f.querySelector('.prec').value, t: f.querySelector('.total').innerText });
+            });
+            if(items.length === 0) return alert("Agrega artículos");
+
+            const data = { nombreOrden, fecha, items, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
+
+            try {
+                if(editandoId) {
+                    await db.collection("pedidos").doc(editandoId).update(data);
+                } else {
+                    await db.collection("pedidos").add(data);
+                }
+                reiniciarTabla();
+                alert("Guardado correctamente");
+            } catch (error) { alert("Error al guardar"); }
+        }
+
+        function filtrar() {
+            const nom = document.getElementById('txtBuscar').value.toLowerCase();
+            const fec = document.getElementById('fecBuscar').value;
+            const filtrados = registros.filter(r => (r.nombreOrden.toLowerCase().includes(nom)) && (fec === "" || r.fecha === fec));
+            const lista = document.getElementById('historialLista');
+            lista.innerHTML = "";
+            filtrados.forEach(reg => {
+                const card = document.createElement('div');
+                card.className = "card-item";
+                card.innerHTML = `<h3>${reg.nombreOrden}</h3><p>📅 ${reg.fecha}</p>
+                <div class="card-btns">
+                    <span class="btn-mini" onclick="verDetalle('${reg.fireId}')">Ver</span>
+                    <span class="btn-mini" onclick="cargarEdicion('${reg.fireId}')">Editar</span>
+                    <span class="btn-mini btn-pdf" onclick="exportarPDF('${reg.fireId}')">PDF</span>
+                    <span class="btn-mini btn-excel" onclick="exportarExcel('${reg.fireId}')">Excel</span>
+                    <span class="btn-mini" style="color:red" onclick="borrarRegistro('${reg.fireId}')">Borrar</span>
+                </div>`;
+                lista.appendChild(card);
+            });
+        }
+
+        function exportarPDF(id) {
+            const reg = registros.find(r => r.fireId === id);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            for(let j=0; j<40; j++){
+                let r = 107 + (j * 1.5); let g = 33 + (j * 1.3); let b = 168 + (j * 1.1);
+                doc.setFillColor(r, g, b); doc.rect(0, j, 210, 1, 'F');
+            }
+            doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("TECNO TREBOL", 15, 22);
+            doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text("LISTADO DE PEDIDO A PROVEEDOR ", 15, 30);
+            doc.setTextColor(60, 60, 60); doc.setFontSize(12); doc.text(`NOMBRE DEL PROVEEDOR O ORDEN:`, 15, 50);
+            doc.setFont("helvetica", "bold"); doc.text(`${reg.nombreOrden.toUpperCase()}`, 15, 57);
+            doc.setFont("helvetica", "normal"); doc.text(`FECHA:`, 140, 50); doc.text(`${reg.fecha}`, 140, 57);
+
+            let totalGeneral = 0;
+            const dataTable = reg.items.map(it => {
+                const valTotal = parseFloat(it.t.replace('$', '')) || 0;
+                totalGeneral += valTotal;
+                return [it.n, it.ma, it.m, it.c, `$${parseFloat(it.p).toFixed(2)}`, it.t];
+            });
+
+            doc.autoTable({
+                startY: 70,
+                head: [['ARTÍCULO', 'MARCA', 'MODELO', 'CANT', 'UNITARIO', 'SUBTOTAL']],
+                body: dataTable,
+                theme: 'striped',
+                headStyles: { fillColor: [107, 33, 168], textColor: [255, 255, 255], fontSize: 10, halign: 'center' },
+                styles: { fontSize: 9, cellPadding: 4 },
+                columnStyles: { 5: { halign: 'right', fontStyle: 'bold' } },
+                foot: [[{content: 'TOTAL A PAGAR:', colSpan: 5, styles: {halign: 'right', fillColor: [107, 33, 168], textColor: [255, 255, 255], fontStyle: 'bold'}}, 
+                        {content: `$${totalGeneral.toFixed(2)}`, styles: {halign: 'right', fillColor: [107, 33, 168], textColor: [255, 255, 255], fontStyle: 'bold'}}]]
+            });
+            doc.save(`${reg.nombreOrden}-PEDIDO.pdf`);
+        }
+
+        function exportarExcel(id) {
+            const reg = registros.find(r => r.fireId === id);
+            const ws = XLSX.utils.json_to_sheet(reg.items.map(it => ({ Art: it.n, Marca: it.ma, Modelo: it.m, Cant: it.c, Total: it.t })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Lista");
+            XLSX.writeFile(wb, `${reg.nombreOrden}.xlsx`);
+        }
+
+        function verDetalle(id) {
+            const reg = registros.find(r => r.fireId === id);
+            document.getElementById('modalTitle').innerText = reg.nombreOrden;
+            let h = `<table style="width:100%; border-collapse:collapse"><thead><tr style="border-bottom:2px solid #eee"><th>Art.</th><th>Total</th></tr></thead><tbody>`;
+            reg.items.forEach(it => h += `<tr style="border-bottom:1px solid #eee"><td>${it.n}</td><td>${it.t}</td></tr>`);
+            document.getElementById('modalContent').innerHTML = h + `</tbody></table>`;
+            document.getElementById('modal').style.display = "flex";
+        }
+
+        function cargarEdicion(id) {
+            const reg = registros.find(r => r.fireId === id);
+            editandoId = id;
+            document.getElementById('nombreOrden').value = reg.nombreOrden;
+            document.getElementById('inputFecha').value = reg.fecha;
+            document.getElementById('tablaCuerpo').innerHTML = "";
+            reg.items.forEach(it => agregarFila(it));
+            document.getElementById('formTitle').innerText = "Editando Registro";
+            document.getElementById('btnCancel').style.display = "inline-block";
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        async function borrarRegistro(id) { if(confirm("¿Eliminar lista?")) { await db.collection("pedidos").doc(id).delete(); } }
+        function cerrarModal() { document.getElementById('modal').style.display = "none"; }
+        function cancelarEdicion() { reiniciarTabla(); }
     </script>
 </body>
 </html>
