@@ -20,6 +20,7 @@
             --accent: #e6a500;
             --danger: #b30000;
             --bg: #f4f4f9;
+            --oferta: #ff4d4d;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,11 +35,10 @@
             background: linear-gradient(135deg, #4b0082, var(--secondary));
             color: #fff;
             padding: 15px 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            /* Cambiado a flex para alinear el botón */
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .logo-admin {
@@ -46,10 +46,8 @@
             font-weight: 900;
             text-transform: uppercase;
             font-style: italic;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
         }
 
-        /* Estilo para el nuevo botón de navegación */
         .btn-nav {
             background: var(--accent);
             color: var(--secondary);
@@ -57,23 +55,10 @@
             border-radius: 10px;
             text-decoration: none;
             font-weight: 900;
-            font-size: 14px;
-            transition: 0.3s;
-            border: none;
-            cursor: pointer;
-            display: none; /* Oculto hasta el login exitoso */
+            display: none;
         }
 
-        .btn-nav:hover {
-            background: #fff;
-            transform: scale(1.05);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 20px;
-        }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
 
         form {
             background: #fff;
@@ -85,29 +70,8 @@
             display: none;
         }
 
-        form h2 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 20px;
-            font-weight: 900;
-        }
-
-        label {
-            font-size: 14px;
-            font-weight: 600;
-            display: block;
-            margin-top: 15px;
-            color: #555;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-top: 5px;
-            font-family: inherit;
-        }
+        label { font-size: 14px; font-weight: 600; display: block; margin-top: 15px; color: #555; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 5px; }
 
         .btn-main {
             background: var(--primary);
@@ -120,32 +84,9 @@
             margin-top: 20px;
             font-weight: 900;
             text-transform: uppercase;
-            transition: 0.3s;
         }
 
-        .upload-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .btn-upload {
-            background: var(--primary);
-            color: white;
-            border: 0;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 5px;
-            min-width: 50px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 40px; }
 
         .card {
             background: #fff;
@@ -153,12 +94,24 @@
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             text-align: center;
-            border: 1px solid #eee;
             position: relative;
-            transition: opacity 0.3s;
+            border: 1px solid #eee;
         }
 
         .card-hidden { opacity: 0.5; }
+
+        /* Iconos de control arriba */
+        .controls-top {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .btn-control { cursor: pointer; font-size: 18px; color: var(--primary); padding: 5px; }
+        .btn-control.active { color: var(--oferta); }
 
         .handle-drag {
             position: absolute;
@@ -171,93 +124,53 @@
             z-index: 10;
         }
 
-        .btn-visibility {
+        /* Badge de Oferta */
+        .badge-oferta {
             position: absolute;
-            top: 10px;
-            left: 15px;
-            cursor: pointer;
-            font-size: 18px;
-            z-index: 10;
-            color: var(--primary);
-            padding: 5px;
-        }
-
-        .card img {
-            width: 100%;
-            height: 180px;
-            object-fit: contain;
-            margin-bottom: 15px;
-        }
-
-        .price-tag { color: var(--primary); font-weight: 900; font-size: 20px; margin-bottom: 10px; }
-
-        .btn-action {
-            border: 0;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 48%;
-            margin: 5px 1%;
+            top: 45px;
+            left: 10px;
+            background: var(--oferta);
             color: white;
+            font-weight: 900;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
+        .card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
+        .price-tag { color: #2ecc71; font-weight: 900; font-size: 20px; margin-bottom: 10px; }
+        .old-price { text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px; }
+
+        .btn-action { border: 0; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 48%; margin: 5px 1%; color: white; }
         .btn-edit { background: var(--accent); }
         .btn-delete { background: var(--danger); }
         .btn-view { background: #6c757d; width: 100%; margin-bottom: 10px; }
 
         #loginOverlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000;
         }
-
-        #loginBox {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            width: 90%;
-            max-width: 350px;
-        }
-
-        .desc-container {
-            display: none;
-            margin-top: 10px;
-            font-size: 13px;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: left;
-            border-left: 4px solid var(--primary);
-        }
-
-        @media (max-width: 600px) {
-            .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .logo-admin { font-size: 18px; }
-            .btn-nav { padding: 8px 12px; font-size: 12px; }
-        }
+        #loginBox { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 350px; }
+        
+        .desc-container { display: none; margin-top: 10px; font-size: 13px; background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: left; border-left: 4px solid var(--primary); }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo-admin">TECNOTREBOL Admin</div>
-    <a href="indexw.html" id="btnIrOrdenes" class="btn-nav">
-        <i class="fas fa-list-check"></i> IR ORDENES
-    </a>
+    <a href="indexw.html" id="btnIrOrdenes" class="btn-nav"><i class="fas fa-list-check"></i> IR ORDENES</a>
 </header>
 
 <div id="loginOverlay">
     <div id="loginBox">
-        <i class="fas fa-lock-open" style="font-size: 40px; color: var(--primary); margin-bottom: 15px;"></i>
         <h3>Acceso Restringido</h3>
-        <input type="email" id="correoLogin" placeholder="Correo de administrador">
+        <input type="password" id="correoLogin" placeholder="Código de acceso">
         <button class="btn-main" onclick="verificarCorreo()">Entrar</button>
     </div>
 </div>
@@ -265,22 +178,11 @@
 <div class="container">
     <form id="form-producto">
         <h2>Nuevo Producto</h2>
-        <label>Nombre:</label>
-        <input id="nombre" placeholder="Ej: Samsung Galaxy A06" required>
-        <label>Precio:</label>
-        <input id="precio" placeholder="Ej: REF: 108$" required>
-        <label>Descripción:</label>
-        <textarea id="descripcion" rows="3" placeholder="Características..."></textarea>
-        
-        <label>URL Imagen:</label>
-        <div class="upload-container">
-            <input id="foto" placeholder="Enlace de la foto o sube una" required>
-            <button type="button" class="btn-upload" onclick="abrirCargador()" title="Subir imagen">
-                <i class="fas fa-paperclip"></i>
-            </button>
-        </div>
-        
-        <button type="submit" class="btn-main">Guardar en Catálogo</button>
+        <input id="nombre" placeholder="Nombre" required>
+        <input id="precio" placeholder="Precio Actual" required>
+        <textarea id="descripcion" rows="2" placeholder="Descripción"></textarea>
+        <input id="foto" placeholder="URL de imagen" required>
+        <button type="submit" class="btn-main">Guardar Producto</button>
     </form>
 
     <div id="productos" class="grid"></div>
@@ -292,43 +194,15 @@
     const db = firebase.database();
     const productosRef = db.ref("productos");
 
-    const cloudName = "dt4kgs8ge";
-    const uploadPreset = "fotos_web";
-
-    function abrirCargador() {
-        if (typeof cloudinary === 'undefined') {
-            alert("Error: No se pudo cargar la librería de Cloudinary. Revisa tu conexión.");
-            return;
-        }
-
-        cloudinary.openUploadWidget({
-            cloudName: cloudName,
-            uploadPreset: uploadPreset,
-            sources: ['local', 'camera', 'url'],
-            multiple: false,
-            resourceType: "image",
-            clientAllowedFormats: ["png", "jpg", "jpeg", "webp"]
-        }, (error, result) => {
-            if (!error && result && result.event === "success") {
-                document.getElementById("foto").value = result.info.secure_url;
-            }
-        });
-    }
-
-    let totalActual = 0;
     let productosCache = {};
 
     function verificarCorreo() {
-        const mail = document.getElementById("correoLogin").value.trim().toLowerCase();
-        if(mail === "2020") {
+        if(document.getElementById("correoLogin").value === "2020") {
             document.getElementById("loginOverlay").style.display = "none";
             document.getElementById("form-producto").style.display = "block";
-            // MOSTRAR EL BOTÓN AL ENTRAR
-            document.getElementById("btnIrOrdenes").style.display = "block"; 
+            document.getElementById("btnIrOrdenes").style.display = "block";
             cargarProductos();
-        } else { 
-            alert("Acceso denegado."); 
-        }
+        } else { alert("Error"); }
     }
 
     document.getElementById("form-producto").onsubmit = e => {
@@ -338,69 +212,85 @@
             precio: document.getElementById("precio").value,
             descripcion: document.getElementById("descripcion").value,
             foto: document.getElementById("foto").value,
-            posicion: totalActual,
-            visible: true 
+            posicion: Date.now(),
+            visible: true,
+            enOferta: false
         };
         productosRef.push(nuevo);
         e.target.reset();
-        alert("¡Producto agregado!");
     };
 
     function cargarProductos() {
         productosRef.orderByChild("posicion").on("value", snapshot => {
             const contenedor = document.getElementById("productos");
-            let htmlBuffer = ""; 
-            let count = 0;
+            let html = "";
             productosCache = snapshot.val() || {};
-
-            snapshot.forEach(childSnapshot => {
-                const id = childSnapshot.key;
-                const p = childSnapshot.val();
-                count++;
+            snapshot.forEach(child => {
+                const p = child.val();
+                const id = child.key;
                 const esVisible = p.visible !== false;
+                const enOferta = p.enOferta === true;
 
-                htmlBuffer += `
+                html += `
                     <div class="card ${esVisible ? '' : 'card-hidden'}" data-id="${id}" id="card-${id}">
-                        <div class="btn-visibility" onclick="toggleVisibilidad('${id}', ${esVisible})">
-                            <i class="fas ${esVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        <div class="controls-top">
+                            <div class="btn-control" onclick="toggleVisibilidad('${id}', ${esVisible})">
+                                <i class="fas ${esVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </div>
+                            <div class="btn-control ${enOferta ? 'active' : ''}" onclick="toggleOferta('${id}', ${enOferta})">
+                                <i class="fas fa-tag"></i>
+                            </div>
                         </div>
                         <i class="fas fa-grip-vertical handle-drag"></i>
-                        <img src="${p.foto}" loading="lazy"> <h3>${p.nombre}</h3>
-                        <p class="price-tag">${p.precio}</p>
-                        <button class="btn-action btn-view" onclick="toggleDesc('${id}')">Ver Info</button>
+                        
+                        ${enOferta ? `<div class="badge-oferta">-${p.oferta}%</div>` : ''}
+                        
+                        <img src="${p.foto}">
+                        <h3>${p.nombre}</h3>
+                        <p class="price-tag">
+                            ${(enOferta && p.precioAnterior) ? `<span class="old-price">${p.precioAnterior}</span>` : ''}
+                            ${p.precio}
+                        </p>
+                        
+                        <button class="btn-action btn-view" onclick="toggleDesc('${id}')">Info</button>
                         <div id="display-desc-${id}" class="desc-container">${p.descripcion || 'Sin descripción'}</div>
+                        
                         <div style="display: flex; justify-content: space-between;">
-                            <button class="btn-action btn-edit" onclick="habilitarEdicion('${id}')">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="btn-action btn-delete" onclick="eliminar('${id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <button class="btn-action btn-edit" onclick="habilitarEdicion('${id}')">Editar</button>
+                            <button class="btn-action btn-delete" onclick="eliminar('${id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>`;
             });
-            contenedor.innerHTML = htmlBuffer;
-            totalActual = count;
+            contenedor.innerHTML = html;
             activarDragAndDrop();
         });
     }
 
-    function toggleVisibilidad(id, estadoActual) {
-        db.ref("productos/" + id).update({ visible: !estadoActual });
+    function toggleVisibilidad(id, estado) { db.ref("productos/" + id).update({ visible: !estado }); }
+
+    function toggleOferta(id, estado) {
+        if (!estado) {
+            const precioAnt = prompt("Precio Anterior (ej: 350$):");
+            const porc = prompt("Porcentaje de descuento (solo número, ej: 15):");
+            if (precioAnt && porc) {
+                db.ref("productos/" + id).update({ enOferta: true, precioAnterior: precioAnt, oferta: porc });
+            }
+        } else {
+            if (confirm("¿Quitar oferta?")) {
+                db.ref("productos/" + id).update({ enOferta: false, precioAnterior: null, oferta: null });
+            }
+        }
     }
 
     function activarDragAndDrop() {
         const el = document.getElementById('productos');
-        if (el.sortableInstance) { el.sortableInstance.destroy(); }
-        
-        el.sortableInstance = Sortable.create(el, {
-            animation: 150,
+        Sortable.create(el, {
             handle: '.handle-drag',
+            animation: 150,
             onEnd: function() {
                 const updates = {};
                 el.querySelectorAll('.card').forEach((card, index) => {
-                    const id = card.getAttribute('data-id');
-                    updates[`/${id}/posicion`] = index;
+                    updates[`/${card.dataset.id}/posicion`] = index;
                 });
                 db.ref("productos").update(updates);
             }
@@ -408,67 +298,33 @@
     }
 
     function toggleDesc(id) {
-        const desc = document.getElementById(`display-desc-${id}`);
-        desc.style.display = (desc.style.display === "block") ? "none" : "block";
+        const d = document.getElementById(`display-desc-${id}`);
+        d.style.display = d.style.display === "block" ? "none" : "block";
     }
 
-    function eliminar(id) { 
-        if(confirm("¿Estás seguro de eliminar este producto?")) {
-            db.ref("productos/" + id).remove(); 
-        }
-    }
+    function eliminar(id) { if(confirm("¿Eliminar?")) db.ref("productos/"+id).remove(); }
 
     function habilitarEdicion(id) {
         const p = productosCache[id];
         const card = document.getElementById(`card-${id}`);
-        
         card.innerHTML = `
             <div style="text-align: left; padding: 5px;">
-                <h4 style="margin-bottom:10px; color:var(--primary);">Editar Producto</h4>
-                <label>Nombre:</label>
                 <input type="text" id="edit-nombre-${id}" value="${p.nombre}">
-                <label>Precio:</label>
                 <input type="text" id="edit-precio-${id}" value="${p.precio}">
-                <label>Descripción:</label>
                 <textarea id="edit-desc-${id}" rows="3">${p.descripcion || ""}</textarea>
-                <label>URL Foto:</label>
-                <div class="upload-container">
-                    <input type="text" id="edit-foto-${id}" value="${p.foto}">
-                    <button type="button" class="btn-upload" onclick="abrirCargadorEdicion('${id}')">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
-                </div>
-                <button class="btn-main" style="background:#28a745; padding:10px;" onclick="actualizarProducto('${id}')">Guardar</button>
-                <button class="btn-main" style="background:#6c757d; padding:10px; margin-top:5px;" onclick="cargarProductos()">Cancelar</button>
+                <input type="text" id="edit-foto-${id}" value="${p.foto}">
+                <button class="btn-main" onclick="actualizarProducto('${id}')">Guardar</button>
+                <button class="btn-main" style="background:#6c757d" onclick="cargarProductos()">Cancelar</button>
             </div>`;
     }
 
-    function abrirCargadorEdicion(id) {
-        cloudinary.openUploadWidget({
-            cloudName: cloudName,
-            uploadPreset: uploadPreset,
-            sources: ['local', 'camera'],
-            multiple: false,
-            resourceType: "image"
-        }, (error, result) => {
-            if (!error && result && result.event === "success") {
-                const input = document.getElementById(`edit-foto-${id}`);
-                if(input) input.value = result.info.secure_url;
-            }
-        });
-    }
-
     function actualizarProducto(id) {
-        const updates = {
+        db.ref("productos/" + id).update({
             nombre: document.getElementById(`edit-nombre-${id}`).value,
             precio: document.getElementById(`edit-precio-${id}`).value,
             descripcion: document.getElementById(`edit-desc-${id}`).value,
             foto: document.getElementById(`edit-foto-${id}`).value
-        };
-        db.ref("productos/" + id).update(updates).then(() => {
-            alert("Actualizado correctamente");
-            cargarProductos();
-        });
+        }).then(() => cargarProductos());
     }
 </script>
 </body>
