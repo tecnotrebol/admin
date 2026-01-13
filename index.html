@@ -35,7 +35,6 @@
             color: #fff;
             padding: 15px 30px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            /* Cambiado a flex para alinear el botón */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -49,7 +48,6 @@
             text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
         }
 
-        /* Estilo para el nuevo botón de navegación */
         .btn-nav {
             background: var(--accent);
             color: var(--secondary);
@@ -61,19 +59,12 @@
             transition: 0.3s;
             border: none;
             cursor: pointer;
-            display: none; /* Oculto hasta el login exitoso */
+            display: none; 
         }
 
-        .btn-nav:hover {
-            background: #fff;
-            transform: scale(1.05);
-        }
+        .btn-nav:hover { background: #fff; transform: scale(1.05); }
 
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 20px;
-        }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
 
         form {
             background: #fff;
@@ -85,29 +76,10 @@
             display: none;
         }
 
-        form h2 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 20px;
-            font-weight: 900;
-        }
+        form h2 { text-align: center; color: var(--primary); margin-bottom: 20px; font-weight: 900; }
 
-        label {
-            font-size: 14px;
-            font-weight: 600;
-            display: block;
-            margin-top: 15px;
-            color: #555;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-top: 5px;
-            font-family: inherit;
-        }
+        label { font-size: 14px; font-weight: 600; display: block; margin-top: 15px; color: #555; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 5px; font-family: inherit; }
 
         .btn-main {
             background: var(--primary);
@@ -123,11 +95,7 @@
             transition: 0.3s;
         }
 
-        .upload-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+        .upload-container { display: flex; gap: 10px; align-items: center; }
 
         .btn-upload {
             background: var(--primary);
@@ -171,25 +139,47 @@
             z-index: 10;
         }
 
-        .btn-visibility {
+        /* Contenedor de iconos arriba a la izquierda */
+        .controls-left {
             position: absolute;
             top: 10px;
             left: 15px;
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .btn-visibility, .btn-offer {
             cursor: pointer;
             font-size: 18px;
-            z-index: 10;
             color: var(--primary);
             padding: 5px;
         }
 
-        .card img {
-            width: 100%;
-            height: 180px;
-            object-fit: contain;
-            margin-bottom: 15px;
+        .btn-offer.active { color: #ff4d4d; }
+
+        /* Estilo del círculo de oferta en el admin */
+        .badge-oferta-admin {
+            position: absolute;
+            top: 45px;
+            left: 10px;
+            background: #ff4d4d;
+            color: white;
+            font-weight: 900;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 11px;
+            z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
+        .card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
         .price-tag { color: var(--primary); font-weight: 900; font-size: 20px; margin-bottom: 10px; }
+        .old-price-admin { text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px; font-weight: 400; }
 
         .btn-action {
             border: 0;
@@ -248,7 +238,7 @@
 
 <header>
     <div class="logo-admin">TECNOTREBOL Admin</div>
-    <a href="orden/indexw.html" id="btnIrOrdenes" class="btn-nav">
+    <a href="indexw.html" id="btnIrOrdenes" class="btn-nav">
         <i class="fas fa-list-check"></i> IR ORDENES
     </a>
 </header>
@@ -257,7 +247,7 @@
     <div id="loginBox">
         <i class="fas fa-lock-open" style="font-size: 40px; color: var(--primary); margin-bottom: 15px;"></i>
         <h3>Acceso Restringido</h3>
-        <input type="email" id="correoLogin" placeholder="Correo de administrador">
+        <input type="password" id="correoLogin" placeholder="Código de acceso">
         <button class="btn-main" onclick="verificarCorreo()">Entrar</button>
     </div>
 </div>
@@ -297,17 +287,15 @@
 
     function abrirCargador() {
         if (typeof cloudinary === 'undefined') {
-            alert("Error: No se pudo cargar la librería de Cloudinary. Revisa tu conexión.");
+            alert("Error: No se pudo cargar Cloudinary.");
             return;
         }
-
         cloudinary.openUploadWidget({
             cloudName: cloudName,
             uploadPreset: uploadPreset,
             sources: ['local', 'camera', 'url'],
             multiple: false,
-            resourceType: "image",
-            clientAllowedFormats: ["png", "jpg", "jpeg", "webp"]
+            resourceType: "image"
         }, (error, result) => {
             if (!error && result && result.event === "success") {
                 document.getElementById("foto").value = result.info.secure_url;
@@ -319,16 +307,13 @@
     let productosCache = {};
 
     function verificarCorreo() {
-        const mail = document.getElementById("correoLogin").value.trim().toLowerCase();
+        const mail = document.getElementById("correoLogin").value.trim();
         if(mail === "2020") {
             document.getElementById("loginOverlay").style.display = "none";
             document.getElementById("form-producto").style.display = "block";
-            // MOSTRAR EL BOTÓN AL ENTRAR
             document.getElementById("btnIrOrdenes").style.display = "block"; 
             cargarProductos();
-        } else { 
-            alert("Acceso denegado."); 
-        }
+        } else { alert("Acceso denegado."); }
     }
 
     document.getElementById("form-producto").onsubmit = e => {
@@ -338,8 +323,9 @@
             precio: document.getElementById("precio").value,
             descripcion: document.getElementById("descripcion").value,
             foto: document.getElementById("foto").value,
-            posicion: totalActual,
-            visible: true 
+            posicion: Date.now(),
+            visible: true,
+            enOferta: false
         };
         productosRef.push(nuevo);
         e.target.reset();
@@ -350,25 +336,40 @@
         productosRef.orderByChild("posicion").on("value", snapshot => {
             const contenedor = document.getElementById("productos");
             let htmlBuffer = ""; 
-            let count = 0;
             productosCache = snapshot.val() || {};
 
             snapshot.forEach(childSnapshot => {
                 const id = childSnapshot.key;
                 const p = childSnapshot.val();
-                count++;
                 const esVisible = p.visible !== false;
+                const enOferta = p.enOferta === true;
 
                 htmlBuffer += `
                     <div class="card ${esVisible ? '' : 'card-hidden'}" data-id="${id}" id="card-${id}">
-                        <div class="btn-visibility" onclick="toggleVisibilidad('${id}', ${esVisible})">
-                            <i class="fas ${esVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        <div class="controls-left">
+                            <div class="btn-visibility" onclick="toggleVisibilidad('${id}', ${esVisible})" title="Ocultar/Mostrar">
+                                <i class="fas ${esVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </div>
+                            <div class="btn-offer ${enOferta ? 'active' : ''}" onclick="toggleOferta('${id}', ${enOferta})" title="Activar Oferta">
+                                <i class="fas fa-tag"></i>
+                            </div>
                         </div>
+                        
                         <i class="fas fa-grip-vertical handle-drag"></i>
-                        <img src="${p.foto}" loading="lazy"> <h3>${p.nombre}</h3>
-                        <p class="price-tag">${p.precio}</p>
+                        
+                        ${enOferta ? `<div class="badge-oferta-admin">-${p.oferta}%</div>` : ''}
+                        
+                        <img src="${p.foto}" loading="lazy"> 
+                        <h3>${p.nombre}</h3>
+                        
+                        <p class="price-tag">
+                            ${(enOferta && p.precioAnterior) ? `<span class="old-price-admin">${p.precioAnterior}</span>` : ''}
+                            ${p.precio}
+                        </p>
+                        
                         <button class="btn-action btn-view" onclick="toggleDesc('${id}')">Ver Info</button>
                         <div id="display-desc-${id}" class="desc-container">${p.descripcion || 'Sin descripción'}</div>
+                        
                         <div style="display: flex; justify-content: space-between;">
                             <button class="btn-action btn-edit" onclick="habilitarEdicion('${id}')">
                                 <i class="fas fa-edit"></i> Editar
@@ -380,7 +381,6 @@
                     </div>`;
             });
             contenedor.innerHTML = htmlBuffer;
-            totalActual = count;
             activarDragAndDrop();
         });
     }
@@ -389,18 +389,38 @@
         db.ref("productos/" + id).update({ visible: !estadoActual });
     }
 
+    function toggleOferta(id, estadoActual) {
+        if (!estadoActual) {
+            const precioAnt = prompt("Precio Anterior (ej: 120$):");
+            const porc = prompt("Porcentaje de descuento (ej: 15):");
+            if (precioAnt && porc) {
+                db.ref("productos/" + id).update({
+                    enOferta: true,
+                    precioAnterior: precioAnt,
+                    oferta: porc
+                });
+            }
+        } else {
+            if (confirm("¿Quitar oferta de este producto?")) {
+                db.ref("productos/" + id).update({
+                    enOferta: false,
+                    precioAnterior: null,
+                    oferta: null
+                });
+            }
+        }
+    }
+
     function activarDragAndDrop() {
         const el = document.getElementById('productos');
         if (el.sortableInstance) { el.sortableInstance.destroy(); }
-        
         el.sortableInstance = Sortable.create(el, {
             animation: 150,
             handle: '.handle-drag',
             onEnd: function() {
                 const updates = {};
                 el.querySelectorAll('.card').forEach((card, index) => {
-                    const id = card.getAttribute('data-id');
-                    updates[`/${id}/posicion`] = index;
+                    updates[`/${card.getAttribute('data-id')}/posicion`] = index;
                 });
                 db.ref("productos").update(updates);
             }
@@ -413,15 +433,12 @@
     }
 
     function eliminar(id) { 
-        if(confirm("¿Estás seguro de eliminar este producto?")) {
-            db.ref("productos/" + id).remove(); 
-        }
+        if(confirm("¿Estás seguro de eliminar este producto?")) db.ref("productos/" + id).remove(); 
     }
 
     function habilitarEdicion(id) {
         const p = productosCache[id];
         const card = document.getElementById(`card-${id}`);
-        
         card.innerHTML = `
             <div style="text-align: left; padding: 5px;">
                 <h4 style="margin-bottom:10px; color:var(--primary);">Editar Producto</h4>
@@ -445,15 +462,10 @@
 
     function abrirCargadorEdicion(id) {
         cloudinary.openUploadWidget({
-            cloudName: cloudName,
-            uploadPreset: uploadPreset,
-            sources: ['local', 'camera'],
-            multiple: false,
-            resourceType: "image"
+            cloudName: cloudName, uploadPreset: uploadPreset, sources: ['local', 'camera'], multiple: false
         }, (error, result) => {
             if (!error && result && result.event === "success") {
-                const input = document.getElementById(`edit-foto-${id}`);
-                if(input) input.value = result.info.secure_url;
+                document.getElementById(`edit-foto-${id}`).value = result.info.secure_url;
             }
         });
     }
