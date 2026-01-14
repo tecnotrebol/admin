@@ -108,10 +108,6 @@
             min-width: 50px;
         }
 
-        .foto-linea { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
-        .btn-add-linea { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 11px; margin-top: 5px; }
-        .btn-del-linea { background: var(--danger); color: white; border: none; width: 30px; height: 38px; border-radius: 8px; cursor: pointer; margin-top: 5px; }
-
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -143,6 +139,7 @@
             z-index: 10;
         }
 
+        /* Contenedor de iconos arriba a la izquierda */
         .controls-left {
             position: absolute;
             top: 10px;
@@ -161,6 +158,7 @@
 
         .btn-offer.active { color: #ff4d4d; }
 
+        /* Estilo del círculo de oferta en el admin */
         .badge-oferta-admin {
             position: absolute;
             top: 45px;
@@ -179,25 +177,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        .carousel-container {
-            width: 100%;
-            height: 180px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 15px;
-            border-radius: 8px;
-        }
-        .carousel-track {
-            display: flex;
-            height: 100%;
-            transition: transform 0.6s ease;
-        }
-        .carousel-track img {
-            min-width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
+        .card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
         .price-tag { color: var(--primary); font-weight: 900; font-size: 20px; margin-bottom: 10px; }
         .old-price-admin { text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px; font-weight: 400; }
 
@@ -282,18 +262,13 @@
         <label>Descripción:</label>
         <textarea id="descripcion" rows="3" placeholder="Características..."></textarea>
         
-        <label>Imágenes del Producto:</label>
-        <div id="contenedor-fotos-crear">
-            <div class="foto-linea">
-                <input class="foto-input" placeholder="URL de imagen" required>
-                <button type="button" class="btn-upload" onclick="abrirCargadorLinea(this)">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-            </div>
+        <label>URL Imagen:</label>
+        <div class="upload-container">
+            <input id="foto" placeholder="Enlace de la foto o sube una" required>
+            <button type="button" class="btn-upload" onclick="abrirCargador()" title="Subir imagen">
+                <i class="fas fa-paperclip"></i>
+            </button>
         </div>
-        <button type="button" class="btn-add-linea" onclick="agregarLineaFoto('contenedor-fotos-crear')">
-            <i class="fas fa-plus"></i> Añadir otra imagen
-        </button>
         
         <button type="submit" class="btn-main">Guardar en Catálogo</button>
     </form>
@@ -310,39 +285,25 @@
     const cloudName = "dt4kgs8ge";
     const uploadPreset = "fotos_web";
 
-    function agregarLineaFoto(contenedorId, valor = "") {
-        const contenedor = document.getElementById(contenedorId);
-        const div = document.createElement("div");
-        div.className = "foto-linea";
-        div.innerHTML = `
-            <input class="foto-input" placeholder="URL de imagen" value="${valor}">
-            <button type="button" class="btn-upload" onclick="abrirCargadorLinea(this)">
-                <i class="fas fa-paperclip"></i>
-            </button>
-            <button type="button" class="btn-del-linea" onclick="this.parentElement.remove()">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        contenedor.appendChild(div);
-    }
-
-    function abrirCargadorLinea(boton) {
+    function abrirCargador() {
+        if (typeof cloudinary === 'undefined') {
+            alert("Error: No se pudo cargar Cloudinary.");
+            return;
+        }
         cloudinary.openUploadWidget({
-            cloudName: cloudName, uploadPreset: uploadPreset, multiple: true
+            cloudName: cloudName,
+            uploadPreset: uploadPreset,
+            sources: ['local', 'camera', 'url'],
+            multiple: false,
+            resourceType: "image"
         }, (error, result) => {
             if (!error && result && result.event === "success") {
-                const inputActual = boton.parentElement.querySelector('.foto-input');
-                const contenedorId = boton.closest('[id^="contenedor-fotos"]').id;
-                
-                if (!inputActual.value) {
-                    inputActual.value = result.info.secure_url;
-                } else {
-                    agregarLineaFoto(contenedorId, result.info.secure_url);
-                }
+                document.getElementById("foto").value = result.info.secure_url;
             }
         });
     }
 
+    let totalActual = 0;
     let productosCache = {};
 
     function verificarCorreo() {
@@ -357,26 +318,17 @@
 
     document.getElementById("form-producto").onsubmit = e => {
         e.preventDefault();
-        const inputs = document.querySelectorAll("#contenedor-fotos-crear .foto-input");
-        const urls = Array.from(inputs).map(i => i.value.trim()).filter(v => v !== "");
-
         const nuevo = {
             nombre: document.getElementById("nombre").value,
             precio: document.getElementById("precio").value,
             descripcion: document.getElementById("descripcion").value,
-            foto: urls[0] || "",
-            fotos: urls,
+            foto: document.getElementById("foto").value,
             posicion: Date.now(),
             visible: true,
             enOferta: false
         };
         productosRef.push(nuevo);
         e.target.reset();
-        document.getElementById("contenedor-fotos-crear").innerHTML = `
-            <div class="foto-linea">
-                <input class="foto-input" placeholder="URL de imagen" required>
-                <button type="button" class="btn-upload" onclick="abrirCargadorLinea(this)"><i class="fas fa-paperclip"></i></button>
-            </div>`;
         alert("¡Producto agregado!");
     };
 
@@ -391,7 +343,6 @@
                 const p = childSnapshot.val();
                 const esVisible = p.visible !== false;
                 const enOferta = p.enOferta === true;
-                const listaFotos = p.fotos || [p.foto];
 
                 htmlBuffer += `
                     <div class="card ${esVisible ? '' : 'card-hidden'}" data-id="${id}" id="card-${id}">
@@ -403,140 +354,134 @@
                                 <i class="fas fa-tag"></i>
                             </div>
                         </div>
+                        
                         <i class="fas fa-grip-vertical handle-drag"></i>
+                        
                         ${enOferta ? `<div class="badge-oferta-admin">-${p.oferta}%</div>` : ''}
                         
-                        <div class="carousel-container">
-                            <div class="carousel-track" id="track-${id}">
-                                ${listaFotos.map(url => `<img src="${url}" loading="lazy">`).join('')}
-                            </div>
-                        </div>
-
+                        <img src="${p.foto}" loading="lazy"> 
                         <h3>${p.nombre}</h3>
+                        
                         <p class="price-tag">
                             ${(enOferta && p.precioAnterior) ? `<span class="old-price-admin">${p.precioAnterior}</span>` : ''}
                             ${p.precio}
                         </p>
+                        
                         <button class="btn-action btn-view" onclick="toggleDesc('${id}')">Ver Info</button>
                         <div id="display-desc-${id}" class="desc-container">${p.descripcion || 'Sin descripción'}</div>
+                        
                         <div style="display: flex; justify-content: space-between;">
-                            <button class="btn-action btn-edit" onclick="habilitarEdicion('${id}')"><i class="fas fa-edit"></i> Editar</button>
-                            <button class="btn-action btn-delete" onclick="eliminar('${id}')"><i class="fas fa-trash"></i></button>
+                            <button class="btn-action btn-edit" onclick="habilitarEdicion('${id}')">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-action btn-delete" onclick="eliminar('${id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>`;
             });
             contenedor.innerHTML = htmlBuffer;
             activarDragAndDrop();
-            iniciarCarruseles();
         });
     }
 
-    // --- LÓGICA DE CARRUSEL INFINITO Y CONTINUO (5 SEGUNDOS) ---
-    function iniciarCarruseles() {
-        document.querySelectorAll('.carousel-track').forEach(track => {
-            const images = track.querySelectorAll('img');
-            if (images.length <= 1) return;
+    function toggleVisibilidad(id, estadoActual) {
+        db.ref("productos/" + id).update({ visible: !estadoActual });
+    }
 
-            // Clonamos la primera imagen y la añadimos al final para efecto infinito
-            const firstClone = images[0].cloneNode(true);
-            track.appendChild(firstClone);
+    function toggleOferta(id, estadoActual) {
+        if (!estadoActual) {
+            const precioAnt = prompt("Precio Anterior (ej: 120$):");
+            const porc = prompt("Porcentaje de descuento (ej: 15):");
+            if (precioAnt && porc) {
+                db.ref("productos/" + id).update({
+                    enOferta: true,
+                    precioAnterior: precioAnt,
+                    oferta: porc
+                });
+            }
+        } else {
+            if (confirm("¿Quitar oferta de este producto?")) {
+                db.ref("productos/" + id).update({
+                    enOferta: false,
+                    precioAnterior: null,
+                    oferta: null
+                });
+            }
+        }
+    }
 
-            let counter = 0;
-            const size = 100;
-
-            setInterval(() => {
-                counter++;
-                track.style.transition = "transform 0.6s ease-in-out";
-                track.style.transform = `translateX(-${counter * size}%)`;
-
-                // Cuando llega al clon (final), vuelve al inicio sin que se note
-                if (counter >= images.length) {
-                    setTimeout(() => {
-                        track.style.transition = "none";
-                        track.style.transform = "translateX(0)";
-                        counter = 0;
-                    }, 600); // Mismo tiempo que la duración de la transición
-                }
-            }, 5000); // 5 Segundos
+    function activarDragAndDrop() {
+        const el = document.getElementById('productos');
+        if (el.sortableInstance) { el.sortableInstance.destroy(); }
+        el.sortableInstance = Sortable.create(el, {
+            animation: 150,
+            handle: '.handle-drag',
+            onEnd: function() {
+                const updates = {};
+                el.querySelectorAll('.card').forEach((card, index) => {
+                    updates[`/${card.getAttribute('data-id')}/posicion`] = index;
+                });
+                db.ref("productos").update(updates);
+            }
         });
+    }
+
+    function toggleDesc(id) {
+        const desc = document.getElementById(`display-desc-${id}`);
+        desc.style.display = (desc.style.display === "block") ? "none" : "block";
+    }
+
+    function eliminar(id) { 
+        if(confirm("¿Estás seguro de eliminar este producto?")) db.ref("productos/" + id).remove(); 
     }
 
     function habilitarEdicion(id) {
         const p = productosCache[id];
-        const fotos = p.fotos || [p.foto];
         const card = document.getElementById(`card-${id}`);
         card.innerHTML = `
             <div style="text-align: left; padding: 5px;">
                 <h4 style="margin-bottom:10px; color:var(--primary);">Editar Producto</h4>
-                <label>Nombre:</label><input id="edit-nombre-${id}" value="${p.nombre}">
-                <label>Precio:</label><input id="edit-precio-${id}" value="${p.precio}">
-                <label>Descripción:</label><textarea id="edit-desc-${id}">${p.descripcion || ""}</textarea>
-                <label>Fotos:</label>
-                <div id="contenedor-fotos-edit-${id}">
-                    ${fotos.map(f => `
-                        <div class="foto-linea">
-                            <input class="foto-input" value="${f}">
-                            <button type="button" class="btn-del-linea" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
-                        </div>`).join('')}
+                <label>Nombre:</label>
+                <input type="text" id="edit-nombre-${id}" value="${p.nombre}">
+                <label>Precio:</label>
+                <input type="text" id="edit-precio-${id}" value="${p.precio}">
+                <label>Descripción:</label>
+                <textarea id="edit-desc-${id}" rows="3">${p.descripcion || ""}</textarea>
+                <label>URL Foto:</label>
+                <div class="upload-container">
+                    <input type="text" id="edit-foto-${id}" value="${p.foto}">
+                    <button type="button" class="btn-upload" onclick="abrirCargadorEdicion('${id}')">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
                 </div>
-                <button type="button" class="btn-add-linea" onclick="agregarLineaFoto('contenedor-fotos-edit-${id}')">+ Añadir Foto</button>
-                <button class="btn-main" style="background:#28a745;" onclick="actualizarProducto('${id}')">Guardar</button>
-                <button class="btn-main" style="background:#6c757d; margin-top:5px;" onclick="cargarProductos()">Cancelar</button>
+                <button class="btn-main" style="background:#28a745; padding:10px;" onclick="actualizarProducto('${id}')">Guardar</button>
+                <button class="btn-main" style="background:#6c757d; padding:10px; margin-top:5px;" onclick="cargarProductos()">Cancelar</button>
             </div>`;
     }
 
+    function abrirCargadorEdicion(id) {
+        cloudinary.openUploadWidget({
+            cloudName: cloudName, uploadPreset: uploadPreset, sources: ['local', 'camera'], multiple: false
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                document.getElementById(`edit-foto-${id}`).value = result.info.secure_url;
+            }
+        });
+    }
+
     function actualizarProducto(id) {
-        const inputs = document.querySelectorAll(`#contenedor-fotos-edit-${id} .foto-input`);
-        const urls = Array.from(inputs).map(i => i.value.trim()).filter(v => v !== "");
         const updates = {
             nombre: document.getElementById(`edit-nombre-${id}`).value,
             precio: document.getElementById(`edit-precio-${id}`).value,
             descripcion: document.getElementById(`edit-desc-${id}`).value,
-            foto: urls[0] || "",
-            fotos: urls
+            foto: document.getElementById(`edit-foto-${id}`).value
         };
         db.ref("productos/" + id).update(updates).then(() => {
             alert("Actualizado correctamente");
             cargarProductos();
         });
     }
-
-    function toggleVisibilidad(id, estadoActual) { db.ref("productos/" + id).update({ visible: !estadoActual }); }
-    function toggleOferta(id, estadoActual) { 
-        const p = productosCache[id];
-        if(!estadoActual) {
-            const porc = prompt("Porcentaje de descuento (ej: 20):", "10");
-            if(porc) {
-                const actualNum = parseFloat(p.precio.replace(/[^\d.]/g, ""));
-                const nuevoRef = "REF: " + (actualNum * (1 - porc/100)).toFixed(0) + "$";
-                db.ref("productos/"+id).update({ enOferta: true, oferta: porc, precioAnterior: p.precio, precio: nuevoRef });
-            }
-        } else {
-            if(p.precioAnterior) db.ref("productos/"+id).update({ enOferta: false, precio: p.precioAnterior, precioAnterior: null });
-        }
-    }
-
-    function activarDragAndDrop() {
-        const el = document.getElementById('productos');
-        Sortable.create(el, {
-            handle: '.handle-drag',
-            animation: 150,
-            onEnd: function() {
-                const items = el.querySelectorAll('.card');
-                items.forEach((item, index) => {
-                    const id = item.getAttribute('data-id');
-                    db.ref("productos/" + id).update({ posicion: index });
-                });
-            }
-        });
-    }
-
-    function toggleDesc(id) {
-        const el = document.getElementById(`display-desc-${id}`);
-        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-    }
-
-    function eliminar(id) { if(confirm("¿Eliminar?")) db.ref("productos/" + id).remove(); }
 </script>
 </body>
 </html>
